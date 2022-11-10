@@ -1,0 +1,1390 @@
+python is installed i suppose,
+to install pip:
+    https://pip.pypa.io/en/stable/installation/
+
+
+using an ide is recommended:
+    either:
+        Visual Studio Code(VS code)
+            https://code.visualstudio.com/download
+    or:
+        Pycharm
+        (community version, don`t require Pro. version)
+            https://www.jetbrains.com/pycharm/download
+
+we need to activate virtual environment
+
+I`m using pycharm so,
+    In pycharm:
+        file >> new project
+        tesma:
+            location:
+                location\FASTAPItest
+                    ##thats what i named it
+            Python Interpreter:
+                New Virtualenv environment
+            Click New environment using
+            New environment using ma:
+                select:
+                    Virtualenv
+Or,
+    To activate environment u can also
+    type in terminal:
+        source env/bin/activate
+
+
+Uvicorn:
+    we will run app using uvicorn,
+    our main file is main.py
+        so command to run uvicorn:
+            uvicorn main:app --reload
+                yesma,
+                    main is main.py
+                    --reload:
+                        yeslae code change garda afai reload garcha swagger UI lai
+                        yo omit garda each time after we change we need to run uvicorn(BORINGGG)
+
+after running uvicorn
+    go to:
+        localhost:8000/docs
+        or
+        http://127.0.0.1:8000
+            yo link terminal mai aaucha
+
+    to stop the local server:
+        press CTRL+C in the terminal
+        click anywhere and press it
+
+reference:
+    https://www.youtube.com/watch?v=RSRZ9bmWnCc&list=PLaNsxqNgctlM0CEzKBidDbYVmNsoBK8Ss&index=1
+
+step 1:
+    main.py created
+    then in terminal run:
+        pip install fastapi
+        pip install uvicorn
+        .....
+        (check requirements.txt for all dependencies to install if you get error)
+        (have added here a few, but some may be missing)
+    initial:
+        app = FastAPI(
+            title="MyAPI",
+            description=description,
+            version="0.0.1",
+            contact = {
+                "name": "User",
+                "email": "mail@email.com"
+            },
+            openapi_tags=tags,
+            openapi_url="/api/v1/openapi.json",
+
+        )
+        yesma:
+
+                app=FastAPI() ma::
+                    doc_url="[str]" lae localhost:8000/docs lai localhost:8000/[str]
+                    redoc_url="[str]" lae localhost:8000/redoc lai localhost:8000/[str]
+                        #dubai ma =None halyo bhane dubai disable huncha
+                    #title to change title
+                    #version ofcs version
+                    #contact ma email clickable hudo raicha
+                    #openapi_tags lae tag har banaucha
+
+
+
+step 2:
+    .env ma postgres ko name,pw..... haliyo
+        code:
+            POSTGRES_USER=postgres
+            POSTGRES_PASSWORD=apple123
+            POSTGRES_SERVER=localhost
+            POSTGRES_PORT=5432
+
+
+
+step 3:
+    config ma postgres ko info haliyo
+        code:
+            POSTGRES_USER = os.getenv("POSTGRES_USER")
+                #os.getenv pulls pull env variable from .env
+                #it loads from .env file rather than system
+            POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+            POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")
+            POSTGRES_PORT = os.getenv("POSTGRES_PORT", 5432)
+            POSTGRES_DATABASE = os.getenv("POSTGRES_DATABASE", "mydb")
+            POSTGRES_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DATABASE}"
+
+
+
+step 4:
+    database.py banayo
+        code:
+            engine = create_engine(SQLALCHEMY_DATABASE_URL)
+                #engine banyo
+
+            SessionLocal = sessionmaker(bind=engine)
+                #session ra engine bind bhayo
+
+            Base = declarative_base()
+                #Base banau
+
+
+
+step 5:
+    models.py banayo tablename and all halnu
+    yesma table related sabi kura garnae
+        yesma:
+            table name define ra euta column with primary key hunai parcha
+            -main ma:
+                database bata engine import
+                models bata Base:
+                    kinaki models ma table defined cha
+
+                    The problem is if you have multiple models
+                    you cannot import from each model as Base,
+                    so you need to import all models first in the main
+                    and then import Base from database then it will work
+
+            -Base.metadata.create_all(bind=engine)
+            base lai engine database sanga connect garako
+            app run garyo tabale create garnu lai
+            schema=>public=>Table ma user banyo
+                as def in models`s User class
+                    Column 2ta id ra email bancha
+        ##to connect sqlite database instead of POSTGRESQL,, omit :
+            SQLALCHEMY_DATABASE_URL = setting.DATABASE_URL
+            &
+            engine = create_engine(SQLALCHEMY_DATABASE_URL)
+        ##Instead write
+              ##SQLALCHEMY_DATABASE_URL = 'sqlite:///.db'
+              ##engine = create_engine(SQLALCHEMY_DATABASE_URL,
+                    connect_args = {"check_same_thread" : False})
+
+
+
+step 6:
+    #setting relationship in table
+    #in models.py
+    Pg admin ma gayaera Database ko tables delete garyo
+    User table ma password and is_active added
+    relationship call bhayo sqlalchemy.orm bata
+        ani User class ma:
+            items = relationship("Items", back_populates='owner')
+                back_populates='owner' lae Items lai owner sanga relationship set garyo
+        ani Items class ma:
+            owner = relationship("User",back_populates='items')
+                back_populates='User' lae Items lai items sanga relationship set garyo
+        we did set relation ship btn table user and items
+
+    running uvicorn created items and users table,, check pg admin for detail
+
+
+
+step 7:
+    #password hashing
+    pip install passlib[bcrypt]
+    pip install pydantic[email]
+
+    hashing.py created
+
+    pwd_context = CryptContext(schemes='bcrypt', deprecated="auto")
+        #using hashing algorithm bcrypt
+            ##can use
+                ##3sha256_crypt, md5..., des_crypt...
+
+    class hasher banayo, CryptContext bolayaera
+           @staticmethod
+           def get_hash_password(plain_password):
+             return pwd_context.hash(plain_password)
+                 --take the hashed pw
+
+           @staticmethod
+           def verify_password(plain_password, hash_password):
+              return pwd_context.verify(plain_password, hash_password)
+                    --verify em
+
+    now python console
+            from hashing import Hasher
+            Hasher.get_hash_password("mypassword")
+                yestai sth aaucha
+                    '$2b$12$S7EFHBUfe9qOeI4sxds7aecaAETUCrLiIs19HOOXKTk5iEDeEvoeK'
+            Hasher.verify_password("mypassword", "$2b$12$S7EFHBUfe9qOeI4sxds7aecaAETUCrLiIs19HOOXKTk5iEDeEvoeK")
+                (plainpw, hash)
+
+                returns
+                    True//False(if mistake)
+
+
+
+step 7:
+    created schemas.py
+        EmailStr, BaseModel pydantic bata bolayo
+        UserCreate(BaseModel) class ma:
+            email/pw haru define bhayo
+
+
+    main.py ma:
+        UserCreate lai schemas bata bolayo
+
+        code added:
+            @app.post("/users", tags=['user'])
+            def create_user(user: UserCreate):
+                Try and remove it
+                    print(user.email)
+                    print(user.password)
+
+                        uvicorn run
+                            post/user ma email and pw halanae
+                            execute ma null
+                            pycharm ma i/p garya usr and pw aaucha
+                passed so delete
+
+    in database.py add
+        code:
+            #dependency injection
+            def get_db() -> Generator:
+                 try:
+                    db = SessionLocal()
+                    ## created db object
+                    yield db
+                    ## return db
+                 finally:
+                     db.close()
+
+    in main.py
+        import User from models
+        import Hasher from hashing
+        import get_db from database
+        import Session from sqlalchemy.orm
+        import Depends from fastapi
+        after:
+            @app.post("/users", tags=['user'])
+        add:
+            code:
+                def create_user(
+                     user: UserCreate,
+                     db:Session=Depends(get_db)
+                ):
+                    user = User(
+                        email=user.email,
+                        password=Hasher.get_hash_password(user.password)
+                    )
+                    db.add(user)
+                    db.commit()
+                    db.refresh(user)
+                    return user
+
+        now, run uvicorn
+
+        local:8000/docs ko
+            post/users ma:
+                email and pw halnae
+                o/p:
+                    {
+                      "is_active": true,
+                      "id": 1,
+                      "email": "mail@email.com",
+                      "password": "$2b$12$QhGuew./BI./MkrRksbitOubMTygdHU6OjmNhZheC.raqgcxk9ILK"
+                    }
+    aba pgdamin ma
+    database/testing/Schemas/public/tables/users:
+        yesma new info aaucha agi halya mail/pw
+
+
+
+step 8:
+    routes milauna routers folder banayo
+    __init.py__ banayo package banauna
+
+    users.py banayo user related route ko lai
+         main ma bhako sabai /users copied into
+            code:
+                from fastapi import APIRouter, Depends
+                from sqlalchemy.orm import Session
+                from schemas import UserCreate
+                from database import get_db
+                from hashing import Hasher
+                from models import User
+
+                router = APIRouter()
+
+                @router.get(
+                    "/users",
+                    tags=['user'],
+                )
+                ##tags=["..."] to manage kun tag ma halnae
+                def get_user():
+                    return {"message": "hello user"}
+
+                @router.post(
+                    "/users",
+                    tags=['user'],
+                )
+                def create_user(
+                        user: UserCreate,
+                        db: Session = Depends(get_db)
+                ):
+                    user = User(
+                        email=user.email,
+                        password=Hasher.get_hash_password(user.password)
+                    )
+                    db.add(user)
+                    db.commit()
+                    db.refresh(user)
+                    return user
+
+    aba mathi ko import main.py bata hataunae
+    now,
+        to reference all these
+    in main.py import users from routers
+        app = fastapi ko tala
+            code:
+                app.include_router(users.router)
+
+    aba make items.py in router folder
+        just like above
+            code:
+                from fastapi import APIRouter
+
+
+                router = APIRouter()
+
+
+                @router.get('/items', tags=["product"])
+                def get_product():
+                    return {"message": "product"}
+
+    Now,
+        to reference all these
+    in main.py import items from routers
+        app.include_router(users.router) ko tala,
+            code:
+                app.include_router(items.router)
+
+    trim and clean main.py
+    restart server
+        try:
+            get/users
+            post/users
+            after adding new user final check in pgadmin
+
+
+
+step 9:
+    Na chainae data user lai display na garnu ko lai
+    schemas.py ma add:
+        code:
+            class ShowUser(BaseModel):
+            email: EmailStr
+            is_active: bool
+                class Config:
+                    ##config banayaena bhanae dictionary sth.. error aaucha
+                    orm_mode=True
+                    ##orm object relationship mapper
+                    ##object lai dictionary banayo
+
+        ShowUser lae aba email ra is_active matra show garcha
+    aba,
+    users.py ma:
+        import ShowUsers from schemas
+            code:
+                @router.post(
+                    "/users",
+                    tags=['user']
+                )
+
+            yeslai make:
+
+                @router.post(
+                    "/users",
+                    tags=['user'],
+                    response_model=ShowUser
+                )
+
+
+    uvicorn...
+        response:
+            {
+              "email": "mail3@email.com",
+              "is_active": true
+            }
+
+        specially password return na garnu lai yo
+        here unnecessary kura aayaena
+
+
+
+
+
+
+
+step 10:
+        tests carried out, check /notes/testing/notes_testing
+
+
+
+
+
+
+step 11:
+       wiped off items.py
+            wiped off code
+                old code:
+                    from fastapi import APIRouter
+
+
+                    router = APIRouter()
+
+
+                    @router.get('/items', tags=["product"])
+                    def get_product():
+                        return {"message": "product"}
+
+
+               now,
+                  in main.py:
+                    changed "product" into "items" in
+                        code:
+                            tags = [
+                                {
+                                    "name": "user",
+                                    "description": "user routes"
+                                },
+                                {
+                                    "name": "items",
+                                        ## "product" ==> "items"
+                                    "description": "order related route"
+                                }
+                            ]
+               also,
+                 in models.py
+                 imported Date,
+                 added a date_posted in Items class as:
+                    code:
+                        date_posted = Column(Date)
+
+
+
+
+step 12:
+    in schemas.py,
+    imported date from datetime
+        Added ItemCreate(BaseModel) class
+            added:
+                title & description as str
+
+        Added ShowItem(BaseModel) class
+            added:
+                title, description as str
+                date_posted as date
+
+            also:
+                added config class as:
+                     class Config:
+                        orm_mode=True
+
+
+************************************************************
+*********************       NOTE       *********************
+********* Check adding new column in existing table*********
+** for now went to pgadmin and added a column date_created**
+************************************************************
+
+    in items.py added new lines of code
+        New code:
+            from fastapi import APIRouter, Depends
+            from schemas import ItemCreate, ShowItem
+            from models import Items
+            from datetime import datetime
+            from sqlalchemy.orm import Session
+            from database import get_db
+
+            router = APIRouter()
+
+
+            @router.post(
+                "/item",
+                tags=["items"],
+                response_model=ShowItem
+            )
+            def create_item(
+                    item: ItemCreate,
+                    db: Session = Depends(get_db)
+            ):
+                owner_id = 1 ###refrence
+                date_posted = datetime.now().date()
+                item = Items(
+                    **item.dict(),
+                    date_posted=date_posted,
+                    owner_id=owner_id
+                )
+                db.add(item)
+                db.commit()
+                db.refresh(item)
+                return item
+
+
+    run uvicorn and add new item for:
+        owner_id = 1
+        as referenced above ###refrence
+        We have given value 1 so,
+            all items added for now will only be in user 1
+
+
+
+
+
+
+
+
+
+step 13:
+        tests carried out, check /notes/testing/notes_testing
+
+
+
+
+
+
+step 14:
+    in items.py
+        imported HTTPException
+            code:
+                @router.get("/item/{id}", tags=["items"])
+                    {id} chai thyo pk wala ho, to call by id
+                def retrieve_item_by_id(id, db: Session = Depends(get_db)):
+                        #get_db as we need to retrieve id from the database
+                    item = db.query(Items).filter(Items.id==id).first()
+                        #filter to filter whatever
+                        #.first to return first item
+                    if not item:    ##if item is null
+                        raise HTTPException(status_code=404, detail=f"Item {id} does not exist")
+                    return item
+
+        now,
+        imported List from typing
+            to get all items add
+                code:
+                    @router.get("/item/all", tags=["items"])
+                    def retrieve_all_items(db: Session=Depends(get_db)):
+                        items = db.query(Items).all()
+                        return items
+                #don`t keep this at last for now...
+                #keep it above code above
+                #order of the position in function matters///
+
+                o/p:
+                    [
+                      {
+                        "title": "striwqng",
+                        "description": "stwqwqring",
+                        "owner_id": 1,
+                        "id": 3,
+                        "date_posted": "2022-10-31"
+                      },
+                      {
+                        "title": "str2ing",
+                        "description": "str2ing",
+                        "owner_id": 1,
+                        "id": 1,
+                        "date_posted": "2022-10-31"
+                      }.........
+                    ]
+
+        here,
+            we don`t need to show
+            id and owner_id
+            add
+                code:
+                    @router.get("/item/all", tags=["items"], response_model=List[ShowItem])
+                        #show item matra rakhda error aayo,
+                        #so, added List
+                o/p:
+                    [
+                      {
+                        "title": "striwqng",
+                        "description": "stwqwqring",
+                        "date_posted": "2022-10-31"
+                      },
+                      {
+                        "title": "str2ing",
+                        "description": "str2ing",
+                        "date_posted": "2022-10-31"
+                      },.....
+                    ]
+
+        now,
+        we need to update items by id
+        so,
+            code:
+                @router.put("/item/update/{id}", tags=["items"])
+                def update_item_by_id(
+                        id:int,
+                        item:ItemCreate,
+                        db:Session=Depends(get_db)
+                ):
+                    existing_item = db.query(Items).filter(Items.id==id)
+                        #it only returns query
+                    if not existing_item.first():
+                            #.first() to fetch details
+                        return {"Message": f"Item ID {id} has no details "}
+                    existing_item.update(item)
+
+            o/p:
+                error AttributeError: 'ItemCreate' object has no attribute 'items'
+            #we have i/p as schema but .update(item) takes parameter as dictionary
+            #here we need to use jsonable_encoder
+
+        so,
+        imported jsonable_encoder from fastapi.encoders
+
+        now,
+        update
+            existing_item.update(item)
+        to,
+            existing_item.update(jsonable_encoder(item))
+
+            to understand the process remove
+            #existing_item.update(jsonable_encoder(item))
+            and add
+                code:
+                    print(existing_item)
+                    print(existing_item.first())
+                    print(item)
+                    print(jsonable_encoder(item))
+                o/p:
+                    WHERE items.id = %(id_1)s
+                    <models.Items object at 0x000001D75DA327A0>
+                    title='update1' description='updat1e trail'
+                    {'title': 'update1', 'description': 'updat1e trail'}
+
+        now,
+            remove:
+                print(existing_item)
+                print(existing_item.first())
+                print(item)
+                print(jsonable_encoder(item))
+
+        add,
+            code:
+                existing_item.update(jsonable_encoder(item))
+                db.commit()
+
+        uvicorn:
+            o/p:
+                SELECT items.id AS items_id, items.title AS items_title, items.description AS items_description,
+                items.date_posted AS items_date_posted, items.owner_id AS items_owner_id
+
+            tara /docs ma response null cha
+
+        yesko lai
+
+        add,
+            code:
+                return {"message": f"details for {id} Successfully Updated"}
+
+            o/p:
+                {
+                  "message": "details for 1 Successfully Updated"
+                }
+
+        method 1:
+            code:
+                #using jsonable encoder
+                @router.put("/item/update/{id}", tags=["items"])
+                def update_item_by_id(
+                        id:int,
+                        item:ItemCreate,
+                        db:Session=Depends(get_db)
+                ):
+                    existing_item = db.query(Items).filter(Items.id==id)
+                        #it only returns query
+                    if not existing_item.first():
+                            #.first() to fetch details
+                        return {"Message": f"Item ID {id} has no details "}
+                    existing_item.update(jsonable_encoder(item))
+                    db.commit()
+                    return {"message": f"details for {id} Successfully Updated"}
+
+        method 2:
+            code:
+                #using __dict__
+                @router.put("/item/update1/{id}", tags=["items"])
+                def update_item_by_id_using_dict(
+                        id:int,
+                        item:ItemCreate,
+                        db:Session=Depends(get_db)
+                ):
+                    existing_item = db.query(Items).filter(Items.id==id)
+                        #it only returns query
+                    if not existing_item.first():
+                            #.first() to fetch details
+                        return {"Message": f"Item ID {id} has no details "}
+                    existing_item.update(item.__dict__)
+                    db.commit()
+                    return {"message": f"details for {id} Successfully Updated"}
+
+
+        now,
+
+        deleting item by id,
+            code:
+                @router.delete(f"/item/delete/{id}", tags=["items"])
+                def delete_item_by_id(
+                        id:int,
+                        db:Session=Depends(get_db)
+                ):
+                    existing_item = db.query(Items).filter(Items.id == id)
+                        # it only returns query
+                    if not existing_item.first():
+                            #.first() to fetch details
+                        return {"Message": f"Item ID {id} has no details "}
+                    existing_item.delete()
+                    db.commit()
+                    return {"message": f"Item id: {id} Successfully Deleted"}
+
+
+
+
+
+
+
+step 14:
+    pip install pytest-cov
+        (tests carried out, check /notes/testing/notes_testing)
+
+
+
+
+step 15:
+    (Login related)
+    (user authentication)
+    created login.py under routers
+        imported OAuth2PasswordBearer from fastapi.security
+        added
+        code:
+            from fastapi.security import OAuth2PasswordBearer
+
+
+            oath2_scheme = OAuth2PasswordBearer(tokenUrl='/login/token')
+                #Oath2 session created
+                #tokenUrl
+                    -to give route for the token
+                    -Does verification of username/pw aswell
+
+
+    in items.py,
+        imported oath2_scheme from  routers.logi
+        basically in all put and delete methods
+        in def create_item , update_item_by_id, delete_item_by_id & update_item_by_id_using_dict
+            added:
+                token:str=Depends(oath2_scheme)
+                    #to accept the token
+
+        running uvicorn,
+        localhost:8000/docs
+            we can see the authorization lock now....
+            running locked route shows 401(undocumented):Unauthorized error
+
+            clicking the Authorize button,
+                we can already see that username pw and all automatically created
+                remember, we haven`t defined it yet
+                it comes automatically with oath... library
+
+            also,
+                trying random username and pw RN,
+                    we get 404: Not Found error
+
+    now,
+    in login.py,
+        imported APIRouter,OAuth2PasswordRequestForm,Depends
+        set router as
+            code:
+                router = APIRouter()
+        added,
+            code:
+                @router.post(
+                    "/login/token",
+                    tags=["login"]
+                )
+                def retrieve_token_after_authentication(
+                        form_data: OAuth2PasswordRequestForm=Depends()
+                ):
+                ##as form data depends on the form itself, nothing passed in Depends
+                    print(form_data.username)
+                    print(form_data.password)
+
+            running uvicorn gives
+                error:
+                    RuntimeError: Form data requires "python-multipart" to be installed.
+
+        pip install python-multipart
+            #to accept form data
+
+    now,
+    in main.py
+    import login from router
+    include login router as
+        code:
+            app.include_router(login.router)
+
+    run uvicorn
+    in authorization:
+        set,
+        username as mail@email.com
+        password as password
+            #we set that up earlier,
+            #mail1@email.com \\ password1
+                ##yei format ma halya thyo
+
+    in terminal we get:
+        o/p:
+            INFO:     127.0.0.1:53959 - "GET /openapi.json HTTP/1.1" 200 OK
+            mail@email.com
+            password
+            INFO:     127.0.0.1:53334 - "POST /login/token HTTP/1.1" 200 OK
+
+
+
+    here,
+    we get this o/p bcuz we gave following code
+    in login.py..
+        code:
+            print(form_data.username)
+            print(form_data.password)
+                #omit this after we get o/p
+
+
+
+    now,
+    in login.py
+        import Session from sqlalchemy.orm
+        import get_db from database
+        Add following
+            code:
+                def retrieve_token_after_authentication(
+                        form_data: OAuth2PasswordRequestForm = Depends(),
+                        db:Session = Depends(get_db)
+                ):
+                    ##as form data depends on the form itself, nothing passed in form data's Depends
+                    ##but db:Session Depends from database , get_db
+
+
+        now,
+        import User from Models
+        import HTTPException, status
+
+        add the following code under retrieve_token_after_authentication
+            code:
+                user = db.query(User).filter(User.email==form_data.username).first()
+                    #checking if the table has provided email
+                    #form_data.username bcuz, in authorization tab default is username,pw not email,pw
+
+                if not user:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Invalid Username"
+                    )
+                ##we have set password related code in hashing.py
+                ##in models.py class User,
+                    ##password Column is already defined
+                #Hasher in hashing.py we have verify_passowrd
+                #so calling it
+                if not Hasher.verify_password(form_data.password, user.password):
+                    ##in hasher.py's verify_password
+                        # we have: return pwd_context.verify(plain_password, hash_password)
+                        #so using similar approach
+
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Invalid Password"
+                    )
+
+        run uvicorn,
+            check giving wrong username and password to check the new code
+            wrong email,pw //
+            right email,wrong pw must give
+                error:
+                    Unauthorized
+
+
+
+step 16:
+    (JWT Token)
+    in items.py's create_item,
+    we have hardcoded owner_id = 1
+        but,
+        the id has to be as per the user who ordered,
+            ie: user 5 lae order garda id 5 aauna paryo
+            ailae jollae garae ni hardcode lae gardda user id 1 aaucha
+        token helps with this arae
+
+
+    check,
+        https://jwt.io/libraries
+            #it has details on what package to install for which library
+            #we are using HS256,
+                #so we use jose
+
+        also check,
+        Debugger in
+        https://jwt.io/
+        how everything is
+            colors as per type of encoding ma cha
+
+            first dot ko aagadi(HEADER):
+                header ma(red):
+                    algorithm as HS256 ca
+                    tesko type JWT:
+                        value lae kun algorithm use garya chum, kun type ko,, hamilae thyo matra represent garcha
+
+
+            between first and second dot(DATA:Payload):
+                data ma(pink):
+                    contains actual data
+                    hamilae k data halchum thei aanusar aaucha
+
+                    #IAT is issued at:
+                        when token was issued
+
+
+
+                    yesma hamro requirement anusar ko dictionary value huncha
+
+
+            after second dot(Verify Signature):
+                signature ma(blue)
+                    token pass garda ko encoded info using secret key
+                    when we enter data, it`s first encrypted
+                    along that adding some secret key as well
+                    here:
+                        signature with secret key gets entertained
+
+
+
+    now,
+    pip install python-jose
+    #we can use pyjwt but we are using jose for now???
+
+
+    first we must create a token,
+
+    in login.py,
+    import jwt from jose
+        add
+            code:
+                data = {"sub": form_data.username}
+                    #data should be dictionary
+                    #we are using sub now
+                        ##as sub is unique key so is our username(which is email)
+
+
+    now,
+    download Openssl from:
+        https://www.openssl.org/source/
+    we need to add security key
+    it's sensitive data so we define it in .env
+    to get random security key
+    couldn`t load pycharm so did it from windows powershell(admin)
+    right click start button
+    in terminal type:
+        open ssl rand -hex 32
+
+        my random security key, which i am using rn is,
+            key:
+                0605bc4adcb848d0fbb0407508f43269664b45305610fd9dbaaea3d83516b142
+
+
+
+    in .env,
+    add at bottom
+        code:
+            SECURITY_KEY=0605bc4adcb848d0fbb0407508f43269664b45305610fd9dbaaea3d83516b142
+
+
+    in config.py,
+    add inside Setting class below DATABASE_URL
+        code:
+            SECURITY_KEY = os.getenv("SECURITY_KEY")
+            ALGORITHM = "HS256"
+
+            side note:
+                you can use either:
+                    SECURITY_KEY = os.getenv("SECURITY_KEY")
+                        #i`m using this for now
+                        #or
+                    SECURITY_KEY: str  = os.getenv("SECURITY_KEY")
+            /side note
+
+
+    again,
+    in login.py,
+        add code:
+             jwt_token = jwt.encode(data, setting.SECURITY_KEY, algorithm=setting.ALGORITHM)
+                #pulling SECURITY_KEY, ALGORITHM from config
+             return {"access_token": jwt_token, "token_type": "bearer"}
+                #bearer as our token holds actual data,
+
+    now
+        run uvicorn,
+            go to:
+            POST/login/token Retrieve Token After Authentication
+            try out as:
+                username: mail@email.com
+                password: password
+                ##other all are sent as empty value
+
+                execute:
+                    o/p:
+                        {
+                          "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYWlsQGVtYWlsLmNvbSJ9.tst82aBMnhW9h1HX_8IJMSzra-B7vOiqApMEOqa8Amw",
+                          "token_type": "bearer"
+                        }
+
+            now copy access_token:
+                eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYWlsQGVtYWlsLmNvbSJ9.tst82aBMnhW9h1HX_8IJMSzra-B7vOiqApMEOqa8Amw
+
+
+            now,
+            goto:
+                jwt.io
+                paste token in Encoded
+
+                we get,
+
+                HEADER:
+                    {
+                      "alg": "HS256",
+                      "typ": "JWT"
+                    }
+
+
+                PAYLOAD: DATA:
+                    {
+                      "sub": "mail@email.com"
+                    }
+
+
+                VERIFY SIGNATURE:
+                    HMACSHA256(
+                      base64UrlEncode(header) + "." +
+                      base64UrlEncode(payload),
+
+                    [your-256-bit-secret]#TEXTFIELD
+
+                    ) []secret base64 encoded
+                        #CLICKABLE FIELD
+
+                        click it to make signature valid
+
+
+    NOW,
+    in login.py
+    new updated code:
+                from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+                from fastapi import APIRouter, Depends, HTTPException, status
+                from sqlalchemy.orm import Session
+                from database import get_db
+                from models import User
+                from hashing import Hasher
+                from jose import jwt
+                from config import setting
+
+                oath2_scheme = OAuth2PasswordBearer(tokenUrl='/login/token')
+                # Oath2 session created
+                # tokenUrl to give route for the token
+
+                router = APIRouter()
+
+
+                @router.post(
+                    "/login/token",
+                    tags=["login"]
+                )
+                def retrieve_token_after_authentication(
+                        form_data: OAuth2PasswordRequestForm = Depends(),
+                        db:Session = Depends(get_db)
+                ):
+                    ##as form data depends on the form itself, nothing passed in form data's Depends
+                    ##but db:Session Depends from database , get_db
+                    user = db.query(User).filter(User.email==form_data.username).first()
+                        #checking if the table has provided email
+                    if not user:
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid Username"
+                        )
+                    ##we have set password related code in hashing.py
+                    ##in models.py class User,
+                        ##password Column is already defined
+                    #Hasher in hashing.py we have verify_passowrd
+                    #so calling it
+                    if not Hasher.verify_password(form_data.password, user.password):
+                        ##in hasher.py's verify_password
+                            # we have: return pwd_context.verify(plain_password, hash_password)
+                            #so using similar approach
+
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid Password"
+                        )
+                    data = {"sub": form_data.username}
+                        #data should be dictionary
+                        #we are using sub now
+                            ##as sub is unique key so is our username(which is email)
+                    jwt_token = jwt.encode(data, setting.SECURITY_KEY, algorithm=setting.ALGORITHM)
+                        #pulling SECURITY_KEY, ALGORITHM from config
+                    return {"access_token": jwt_token, "token_type": "bearer"}
+                        #bearer as our token holds actual data,
+
+
+
+
+    in config.py,
+    new updated code:
+                import os
+                from dotenv import load_dotenv
+
+                load_dotenv(dotenv_path=".env")
+                ##.env file load garya postgres ko setting ko lai
+
+
+                class Settings:
+                    TITLE="title from config"
+                    VERSION = "0.0.1"
+                    DESCRIPTION = "dummy project description"
+                    NAME = "USER"
+                    EMAIL = "mail@email.com"
+
+                    POSTGRES_USER = os.getenv("POSTGRES_USER")
+                    ##os.getenv pulls pull env variable from .env
+                    ##it loads from .env file rather than system
+                    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+                    POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")
+                    POSTGRES_PORT = os.getenv("POSTGRES_PORT", 5432)
+                    POSTGRES_DATABASE = os.getenv("POSTGRES_DATABASE", "testing")
+                    DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DATABASE}"
+                    SECURITY_KEY = os.getenv("SECURITY_KEY")
+                    ALGORITHM = "HS256"
+
+
+                setting = Settings()
+
+
+
+step 17:
+    (Implement Authorization)
+    (using JWT Token)
+    in items.py,
+        def:
+            create_item function has hardcoded owner_id as 1
+            whichever user makes the order default is always 1 due to it
+            but,
+            we need to properly assign id to the user who created it
+            so we are going to further tweak our code.
+            for that what we need to do is use the token system we implemented above
+            we will use the token to specify order to it's specific user properly
+        /def
+
+    in all project rename SECURITY_KEY to SECRET_KEY
+    ie (config.py, .env & login.py)
+        so,
+        updated code:
+            import jose from jwt
+            import setting from config
+            import status from fastapi
+            import User from models
+
+            <below def create_item>
+                add:
+                    code:
+                        ##using try block for now
+                        try:
+                            payload = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
+                            username = payload.get("sub")
+                            #data is dictionary,
+                            #payload.get is a dictionary method to get data.
+                            if username is None:
+                                raise HTTPException(
+                                    status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="Unable to verify"
+                                )
+                            user = db.query(User).filter(User.email==username).first()
+                            if user is None:
+                                raise HTTPException(
+                                    status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="email is not in our database"
+                                )
+                        except Exception as e:
+                            raise HTTPException(
+                                status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Unable to verify"
+                            )
+
+                run uvicorn,
+                    trying to post/create_item
+                        error:
+                            401 Unauthorized
+                                {
+                                  "detail": "Not authenticated"
+                                }
+
+                    now,
+                    use authorize at top using,
+                        email: mail3@email.com
+                        password: password3
+                            ##it is id 3 so using it // not using id 1
+
+                    create an item
+                        post/item Create Item
+                        any item
+
+                        o.p/
+                        will come success
+
+                    now check pgadmin for checking if it was posted by
+                    user wth id 3
+
+                problem solved
+
+        next problem user i d1 can delete from user id 4`s order
+        so,
+        after def delete_by_id(..)
+        add
+            code:
+                        try:
+                            payload = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
+                            username = payload.get("sub")
+                            #data is dictionary,
+                            #payload.get is a dictionary method to get data.
+                            if username is None:
+                                raise HTTPException(
+                                    status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="Unable to verify"
+                                )
+                            user = db.query(User).filter(User.email==username).first()
+                            if user is None:
+                                raise HTTPException(
+                                    status_code=status.HTTP_401_UNAUTHORIZED,
+                                    detail="email is not in our database"
+                                )
+                        except Exception as e:
+                            raise HTTPException(
+                                status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Unable to verify"
+                            )
+
+                        existing_item = db.query(Items).filter(Items.id == id)
+                            # it only returns query
+                        if not existing_item.first():
+                                #.first() to fetch details
+                            return {"Message": f"Item ID {id} has no details "}
+                        if existing_item.first().owner_id == user.id:
+
+                            existing_item.delete()
+                            db.commit()
+                            return {"message": f"Item id: {id} Successfully Deleted"}
+                        else:
+                            return {"message": "you aren`t authorized"}
+
+        updated update_item_by_id
+            code:
+                        try:
+                        payload = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
+                        username = payload.get("sub")
+                        #data is dictionary,
+                        #payload.get is a dictionary method to get data.
+                        if username is None:
+                            raise HTTPException(
+                                status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Unable to verify"
+                            )
+                        user = db.query(User).filter(User.email==username).first()
+                        if user is None:
+                            raise HTTPException(
+                                status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="email is not in our database"
+                            )
+                    except Exception as e:
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="unable to verify credentials"
+                        )
+                    existing_item = db.query(Items).filter(Items.id==id)
+                        #it only returns query
+                    if not existing_item.first():
+                            #.first() to fetch details
+                        return {"Message": f"Item ID {id} has no details "}
+                    if existing_item.first().owner_id == user.id:
+                        existing_item.update(jsonable_encoder(item))
+                        db.commit()
+                        return {"message": f"details for {id} Successfully Updated"}
+                    else:
+                        return {"message": "you aren`t authorized"}
+
+
+
+step 18:
+    in items.py,
+        we have DRY,
+        we copied above code in each function,
+        so we are going to make a new function instead
+
+            code:
+                def get_user_from_token(db, token):
+                    ##using try block
+                    try:
+                        payload = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
+                        username = payload.get("sub")
+                        # data is dictionary,
+                        # payload.get is a dictionary method to get data.
+                        if username is None:
+                            raise HTTPException(
+                                status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="Unable to verify"
+                            )
+                        user = db.query(User).filter(User.email == username).first()
+                        if user is None:
+                            raise HTTPException(
+                                status_code=status.HTTP_401_UNAUTHORIZED,
+                                detail="email is not in our database"
+                            )
+                    except Exception as e:
+                        raise HTTPException(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Unable to verify"
+                        )
+                    return user
+
+
+        now,
+            where ever we used that we will simply call the function,
+            and the DRY is no more
+
+            so,
+            we delete that code and add
+                code:
+                    user = get_user_from_token(db, token)
+
+
+        run uvicorn,
+                if you get
+                    error:
+                        Unable to connect to server: could not connect to server: Connection refused (0x0000274D/10061) Is the server running on host "localhost" (::1) and accepting TCP/IP connections on port 5432? could not connect to server: Connection refused (0x0000274D/10061) Is the server running on host "localhost" (127.0.0.1) and accepting TCP/IP connections on port 5432?
+                    remedy:
+                        task manager >> services >> start/restart >> postgresql-X64
+
+
+            create a *new item* from a user,
+            login another user
+            and try to delete *new item*
+                o/p:
+                    {
+                      "message": "you aren`t authorized"
+                    }
+
+
+
+ Step 19:
+          tests carried out, check /notes/testing/notes_testing
+            (step 6)

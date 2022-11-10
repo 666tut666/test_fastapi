@@ -1,0 +1,889 @@
+step 1:
+    (continued from step 10 of note_steps)
+    pip install pytest
+    pip install requests
+    made a directory tests
+    added test_userroute.py
+        side note:
+            to get path of the file we can
+                code:
+                    import os
+                    import sys
+                    print(os.path.abspath(__file__))
+                        #gives out path:
+                            o/p= x/y/z.py
+                    print(__file__)
+                        #gives out file name
+                            o/p= z.py
+                    print(os.path.dirname(os.path.abspath(__file__)))
+                        #gives out dir structure of current file z.py
+                            1:o/p= x/y
+                    print(os.path.dirname(os.path.dirname((os.path.abspath(__file__))))
+                        #gives directory where y is from 1:o/p:
+                            x
+        /sidenote:
+
+    added test_userroute.py
+    import os
+    import sys
+
+    import TestClient from fastapi.testclient
+    import json
+    def:
+        client = TestClient()
+
+    and the following
+        code:
+            from fastapi.testclient import TestClient
+            import json
+
+            import os
+            import sys
+
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            ##we imported os and sys and gave above command to get the path of main
+            ##do it before calling main to let know where it resides
+
+            from main import app
+
+
+            client = TestClient(app)
+
+
+            def test_create_user():
+                data = {"email": "test1@email.com", "password": "test1"}
+                    #providing dummy data
+                response = client.post("/users", json.dumps(data))
+                    #gives above data in json format
+                ##now we check the o/p using assert
+                assert response.status_code == 200
+                    #200 ok aaucha thei ho
+                assert response.json()["email"] == "test1@email.com"
+                    #email match check
+                assert response.json()["is_active"] == True
+                    #is_active bool ho, thei check
+                pass
+
+
+        o/p:
+            collected 1 item
+
+            tests/test_userroute.py::test_create_user PASSED                      [100%]
+
+            ============================ 1 passed in 1.28s =============================
+
+
+step 2:
+    Testing Database:
+        here we need to use new db(sqlite), can`t use production db(postgresql)
+    in test_userroutes.py add following
+        code:
+            from sqlalchemy import create_engine
+            from sqlalchemy.orm import sessionmaker
+            from database import Base, get_db
+
+            SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+            engine = create_engine(
+                SQLALCHEMY_DATABASE_URL,
+                connect_args={"check_same_thread":False}
+            )
+
+            TestingSessionLocal = sessionmaker(
+                autocommit=False,
+                autoflush=False,
+                bind=engine
+            )
+
+            Base.metadata.create_all(bind=engine)
+
+    we have get_db in database.py
+        so,
+          we need to override the session
+            below client = TestClient(), add
+                code:
+                    def override_get_db():
+                        try:
+                            db = TestingSessionLocal()
+                                ## created db object
+                            yield db
+                                ## return db
+                        finally:
+                            db.close()
+
+
+                    app.dependency_overrides[get_db] = override_get_db
+                        #thyo get_db database bata bolako cha tara yeta ko use garnu
+
+
+    now, finally
+        code:
+            from fastapi.testclient import TestClient
+            from sqlalchemy.orm import sessionmaker
+            import json
+            from sqlalchemy import create_engine
+
+
+            import os
+            import sys
+
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            ##we imported os and sys and gave above command to get the path of main
+            ##do it before calling main to let know where it resides
+
+            from main import app
+            from database import Base, get_db
+
+
+            SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+            engine = create_engine(
+                SQLALCHEMY_DATABASE_URL,
+                connect_args={"check_same_thread": False}
+            )   ##sqlite ma db banako // not to use production db
+
+
+            TestingSessionLocal = sessionmaker(
+                autocommit=False,
+                autoflush=False,
+                bind=engine
+            )
+
+            Base.metadata.create_all(bind=engine)
+
+
+            client = TestClient(app)
+
+
+            def override_get_db():
+                try:
+                    db = TestingSessionLocal()
+                    ## created db object
+                    yield db
+                    ## return db
+                finally:
+                    db.close()
+
+
+            app.dependency_overrides[get_db] = override_get_db
+
+
+            def test_create_user():
+                data = {"email": "test2@email.com", "password": "test2"}
+                   -----------------------------------------------------
+                   ############## TRY New Number NEXT TIME##############
+                   -----------------------------------------------------
+                    # providing dummy data
+                response = client.post("/users", json.dumps(data))
+                    # gives above data in json format
+                    #now we check the o/p using assert
+                assert response.status_code == 200
+                    # 200 ok aaucha thei ho
+                assert response.json()["email"] == "test2@email.com"
+                    # email match check
+                assert response.json()["is_active"] == True
+                    # is_active bool ho, thei check
+                pass
+
+        run:
+            pytest -v
+        o/p:
+                ====================================================================== test session starts =======================================================================
+                platform win32 -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0 -- D:\work\pythonProject\fastapiTest\venv\Scripts\python.exe
+                cachedir: .pytest_cache
+                rootdir: D:\work\pythonProject\fastapiTest
+                plugins: anyio-3.6.2
+                collected 1 item
+
+                tests/test_userroute.py::test_create_user PASSED                                                                                                            [100%]
+
+                ======================================================================= 1 passed in 1.12s ========================================================================
+
+(continue to note_step)
+
+
+
+step 3:
+    (continued from step 13 of note_steps)
+    test_itemroute.py created
+    copied all code from test_userroute.py
+    and edited a few lines,
+        code:
+            def test_create_item():
+                create user => crete_item
+                data = {"title": "Item2", "description": "this is item2"}
+                    #Title and description as item
+                response = client.post("/item", json.dumps(data))
+                    #/user => /item
+                    #deleted:
+                        assert response.json() haru hatayo // not required
+                        Base.metadata.drop_all(bind=engine)
+
+    in test_userroute.py
+        deleted:
+            Base.metadata.drop_all(bind=engine)
+                we have owner_id @Items in models.py
+                since the table wil drop we can`t cross verify it so we remove it
+
+    #ailae test run garda 2tai error aaucha // test_user/item route
+        #intregrity error
+    test3 halaeko as 1&2 already there
+        create user passed// create item failed
+        due to hard coding owner route in
+
+
+    remove test.db <migration issue>
+    passed
+        o/p:
+            cachedir: .pytest_cache
+            rootdir: D:\work\pythonProject\fastapiTest
+            plugins: anyio-3.6.2
+            collected 2 items
+
+            tests/test_itemroute.py::test_create_item PASSED                                                                                                            [ 50%]
+            tests/test_userroute.py::test_create_user PASSED                                                                                                            [100%]
+
+            ======================================================================= 2 passed in 1.11s ========================================================================
+
+step 4:
+    created conftest.py in tests folder
+        #pytest automatically reads it as config file
+        #shares fixture across multiple files,
+        #helps to eliminate DRY in multiple files with same code,
+        #WHY?
+            We will understand it later in note
+            as explained below.....
+
+    copied all code from test_user route to conftest.py
+        #except for def test_create_user()
+
+    in test_userroute.py,
+        removed all code except for,
+            def test_create_user
+        imported json,
+            as we need it in test_create_user
+        passed client,
+            def test_create_user(client)
+                #client is kind of fixture/function which must reside now
+                 in conftest.py file
+
+        code:
+            import json
+
+
+            def test_create_user(client):
+                data = {"email": "test3@email.com", "password": "test3"}
+                    # providing dummy data
+                response = client.post("/users", json.dumps(data))
+                    # gives above data in json format
+                    #now we check the o/p using assert
+                assert response.status_code == 200
+                    # 200 ok aaucha thei ho
+                assert response.json()["email"] == "test3@email.com"
+                    # email match check
+                assert response.json()["is_active"] == True
+                    # is_active bool ho, thei check
+                pass
+
+
+    in test_itemroute.py,
+        removed all code except for,
+            def test_create_item
+        imported json,
+            as we need it in test_create_item
+        passed client,
+            def test_create_item(client)
+                #client is kind of fixture/function which must reside now
+                 in conftest.py file
+
+        code:
+            import json
+
+
+            def test_create_item(client):
+                data = {"title": "Item2", "description": "this is item2"}
+                    # providing dummy data
+                response = client.post("/item", json.dumps(data))
+                    # gives above data in json format
+                    #now we check the o/p using assert
+                assert response.status_code == 200
+                    # 200 ok aaucha thei ho
+                pass
+
+    in conftest.py,
+
+        removed import json,
+        added client function,
+        copied
+            override_get_db()function inside client function,
+        also copied
+            app.dependency_overrides[get_db] = override_get_db
+            inside client function,
+        we did this because,
+            when client is called we need to override db
+            so its under it...
+
+
+        as client is function and not fixture,
+        we neet to make it a fixture.
+
+        to do this,
+         we first import pytest,
+         and,
+            defined,
+                @pytest.fixture above def client()
+
+    now check our db,
+        we have test3@email.com data there,
+        so,
+         in test_userroute,
+            make test3@email.com to test1@email.com
+            into
+            test1@email.com <<As its`s not present in db>>
+                #also edit in assert
+
+    run pytest,
+    2 tests,
+    one passed
+    one failed {{UNIQUE constraint failed: items.title}}
+    cuz title ain`t unique
+
+    go to test_itemroute,
+        in data change to item 1
+
+    also,
+        check db and insert new user in test_userroute
+        here i made test2 #also edit in assert
+
+    run pytest,
+        =========================== test session starts ============================
+        platform win32 -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0 -- D:\work\python
+        Project\fastapiTest\venv\Scripts\python.exe
+        cachedir: .pytest_cache
+        rootdir: D:\work\pythonProject\fastapiTest
+        plugins: anyio-3.6.2
+        collected 2 items
+
+        tests/test_itemroute.py::test_create_item PASSED                      [ 50%]
+        tests/test_userroute.py::test_create_user PASSED                      [100%]
+
+        ============================ 2 passed in 0.42s =============================
+
+
+    updated codes,
+         conftest.py:
+
+            from fastapi.testclient import TestClient
+            from sqlalchemy.orm import sessionmaker
+            from sqlalchemy import create_engine
+
+
+            import pytest
+            import os
+            import sys
+
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            ##we imported os and sys and gave above command to get the path of main
+            ##do it before calling main to let know where it resides
+
+            from main import app
+            from database import Base, get_db
+
+
+            SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+            engine = create_engine(
+                SQLALCHEMY_DATABASE_URL,
+                connect_args={"check_same_thread": False}
+            )   ##sqlite ma db banako // not to use production db
+
+
+            TestingSessionLocal = sessionmaker(
+                autocommit=False,
+                autoflush=False,
+                bind=engine
+            )
+
+            Base.metadata.create_all(bind=engine)
+
+
+            @pytest.fixture
+                #this forces fixture to be called first
+                ##and then only the remaining test cases
+            def client():
+                def override_get_db():
+                    try:
+                        db = TestingSessionLocal()
+                        ## created db object
+                        yield db
+                        ## return db
+                    finally:
+                        db.close()
+
+                app.dependency_overrides[get_db] = override_get_db
+                client = TestClient(app)
+                yield client
+                    #we are using yield instead of return
+
+
+
+
+         test_itemroute.py:
+
+            import json
+
+
+            def test_create_item(client):
+                data = {"title": "Item1", "description": "this is item1"}
+                    # providing dummy data
+                response = client.post("/item", json.dumps(data))
+                    # gives above data in json format
+                    #now we check the o/p using assert
+                assert response.status_code == 200
+                    # 200 ok aaucha thei ho
+                pass
+
+
+
+
+         test_userroute.py:
+
+            import json
+
+
+            def test_create_user(client):
+                data = {"email": "test2@email.com", "password": "test2"}
+                    # providing dummy data
+                response = client.post("/users", json.dumps(data))
+                    # gives above data in json format
+                    #now we check the o/p using assert
+                assert response.status_code == 200
+                    # 200 ok aaucha thei ho
+                assert response.json()["email"] == "test2@email.com"
+                    # email match check
+                assert response.json()["is_active"] == True
+                    # is_active bool ho, thei check
+                pass
+
+
+                   -----------------------------------------------------
+                   ############## TRY New Number EACH TIME##############
+                   ######################### OR ########################
+                   ################## Clear data in db##################
+                   -----------------------------------------------------
+
+
+
+
+step 5:
+    (continued from step 14 of note_steps)
+    pip install pytest-cov
+        it  will create a coverage report all the test cases we missed
+
+    now,
+        change mail and alll
+
+        run  pytest --cov="."
+
+        o/p:
+
+            ============================ test session starts ============================
+            platform win32 -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0
+            rootdir: D:\work\pythonProject\fastapiTest
+            plugins: anyio-3.6.2, cov-4.0.0
+            collected 3 items
+
+            tests\test_itemroute.py ..                                             [ 66%]
+            tests\test_userroute.py .                                              [100%]
+
+            ---------- coverage: platform win32, python 3.10.8-final-0 -----------
+            Name                      Stmts   Miss  Cover
+            ---------------------------------------------
+            config.py                    16      0   100%
+            database.py                  14      4    71%
+            hashing.py                    9      1    89%
+            main.py                      11      0   100%
+            models.py                    18      0   100%
+            routers\__init__.py           0      0   100%
+            routers\items.py             52     21    60%
+            routers\users.py             17      1    94%
+            schemas.py                   19      0   100%
+            tests\conftest.py            23      0   100%
+            tests\test_itemroute.py      10      0   100%
+            tests\test_userroute.py       8      0   100%
+            ---------------------------------------------
+            TOTAL                       197     27    86%
+
+
+            ============================= 3 passed in 0.58s =============================
+
+
+    created,
+    .coveragerc
+    to exclude folder to omit while running pytest coverage
+        code:
+            [run]
+            omit =
+                env/*
+                test/*
+                notes/*
+            #omit = [folder-name you want to omit]/*
+            #syntax exactly like above (new line)
+
+    now,
+        change mail and alll
+
+        run  pytest -v --cov="."
+
+        o/p:
+            ============================ test session starts ============================
+            platform win32 -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0 -- D:\work\pythonP
+            roject\fastapiTest\venv\Scripts\python.exe
+            cachedir: .pytest_cache
+            rootdir: D:\work\pythonProject\fastapiTest
+            plugins: anyio-3.6.2, cov-4.0.0
+            collected 3 items
+
+            tests/test_itemroute.py::test_create_item PASSED                       [ 33%]
+            database.py                  14      4    71%
+            hashing.py                    9      1    89%
+            main.py                      11      0   100%
+            models.py                    18      0   100%
+            routers\__init__.py           0      0   100%
+            routers\items.py             52     21    60%
+            routers\users.py             17      1    94%
+            schemas.py                   19      0   100%
+            tests\conftest.py            23      0   100%
+            tests\test_itemroute.py      10      0   100%
+            tests\test_userroute.py       8      0   100%
+            ---------------------------------------------
+            TOTAL                       197     27    86%
+
+
+            ============================= 3 passed in 0.59s =============================
+
+    *********************** OMIT BHAYAENA SKIP IT FOR NOW ***********************
+
+    best practice is to make HTML files,
+    yeslae line by line code to testing show garcha,
+    babal cha,
+
+    change mail and alll
+        run:
+            pytest -v --cov="." --cov-report html
+
+
+            o/p:
+                ====================================================================== test session starts =======================================================================
+                platform win32 -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0 -- D:\work\pythonProject\fastapiTest\venv\Scripts\python.exe
+                cachedir: .pytest_cache
+                rootdir: D:\work\pythonProject\fastapiTest
+                plugins: anyio-3.6.2, cov-4.0.0
+                collected 3 items
+
+                tests/test_itemroute.py::test_create_item PASSED                                                                                                            [ 33%]
+                tests/test_itemroute.py::test_retrieve_item_by_id PASSED                                                                                                    [ 66%]
+                tests/test_userroute.py::test_create_user PASSED                                                                                                            [100%]
+
+                ---------- coverage: platform win32, python 3.10.8-final-0 -----------
+                Coverage HTML written to dir htmlcov
+
+
+                ======================================================================= 3 passed in 0.59s ========================================================================
+
+        now check htmlcov folder,
+        index.html
+            you can check all code's detail line by line
+
+(continue to note_steps: 15)
+
+
+
+step 6:
+    (continued from step 19 of note_steps)
+
+    run pytest-v
+        o/p:
+            only one test passed:
+                tests/test_itemroute.py::test_retrieve_item_by_id PASSED
+
+            2 test failed:
+                tests/test_itemroute.py::test_create_item FAILED
+
+                tests/test_userroute.py::test_create_user FAILED
+        reason:
+            it doesn't have authorization
+
+    now,
+    run uvicorn
+        right click and select inspect in swagger ui
+            then click network
+                and then login
+                    then check token
+                        open it and click response
+                            o/p:
+                                {"access_token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYWlsQGVtYWlsLmNvbSJ9.tst82aBMnhW9h1HX_8IJMSzra-B7vOiqApMEOqa8Amw","token_type":"bearer"}
+
+        now post an item
+            click item
+                check header
+                    authorization ma
+                        o/p:
+                            bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYWlsQGVtYWlsLmNvbSJ9.tst82aBMnhW9h1HX_8IJMSzra-B7vOiqApMEOqa8Amw
+                        copy the token
+                            ##token mathi ko same aaucha hai
+
+            open jwt.io
+                paste token in Encoded
+                    check Decoded
+
+
+        yo frontend bata payo,
+            o/p as:
+                Authorization: Bearer <token>
+        tara,
+            we gotta do it from backend
+
+
+        so,
+            we have to define token in pytest,
+            if we define in a certain function
+            we end up in DRY,
+            so, we use pytest fixture
+
+            for doing this,,
+
+    in conftest.py,
+        add,
+            code:
+                @pytest.fixture
+                    #this forces fixture to be called first
+                    ##and then only the remaining test cases
+                def header_token(client:TestClient):
+                        #as our client is Testclient
+                    test_email = "test1@email.com"
+                    test_pass = "password"
+                    data = {"username":test_email, "password":test_pass}
+                        #username and password any user we have in our test.db
+                        #since they are as dictionary we use above syntax
+                        #username and password any user we have in our db
+                    response = client.post("/login/token", data=data)
+                        #in swagger UI when we click authorize,
+                        #Token URL: /login/token //so, we use same route
+                    access_token = response.json()["access_token"]
+                        #as the response is json, thei anusar data fetch garaeko
+                            #check that for reference if needed
+                    return {"Authorization": f"Bearer {access_token}"}
+
+    in test_userroute.py,
+        update
+            data as
+                code:
+                    data = {"email": "test1@email.com", "password": "password"}
+                    assert response.json()["email"] == "test1@email.com"
+                        #coftest.py ma use garaeko same huna parcha
+
+
+    we are getting issues in data,
+    so we are now going to define test data in config.py itself
+
+    so,
+    in config.py,
+        add
+            code:
+                TEST_EMAIL = "user1@test.com"
+                TEST_PASS = "password"
+                    #naya halae mailae
+                    #error aayae ma bhakai halnu parla????
+                    #lets see.....
+                TEST_ITEM = "test item"
+                TEST_ITEM_DEF = "item description"
+                    #yo ni yetai aba
+
+    now lets update our test files,
+    as we predefined data in config,
+
+
+    in conftest.py,
+        updating a few line
+            code:
+                from config import setting
+
+                    #delete predefined
+                #delete
+                    test_email = "test1@email.com"
+                    test_pass = "password"
+                #/delete
+
+                data = {"username":setting.TEST_EMAIL, "password":setting.TEST_PASS}
+
+
+    we deleted test.db
+
+    in test_userroute.py,
+        updating
+            code:
+                from config import setting
+                data = {"email": setting.TEST_EMAIL, "password": setting.TEST_PASS}
+                assert response.json()["email"] == setting.TEST_EMAIL
+
+                #delete
+                    pass
+                #/delete
+
+    in test_itemroute.py,
+        updating
+            code:
+                from config import setting
+                data = {"title": setting.TEST_ITEM, "description": setting.TEST_ITEM_DEF}
+                assert response.json()["title"] == setting.TEST_ITEM
+
+
+    in confest.py,
+        updated many lines
+            new code:
+                from fastapi.testclient import TestClient
+                from sqlalchemy.orm import sessionmaker
+                from sqlalchemy import create_engine
+
+
+                import pytest
+                import os
+                import sys
+
+
+                sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                ##we imported os and sys and gave above command to get the path of main
+                ##do it before calling main to let know where it resides
+
+                from main import app
+                from database import Base, get_db
+                from config import setting
+                from models import User
+                from hashing import Hasher
+
+
+                SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+                engine = create_engine(
+                    SQLALCHEMY_DATABASE_URL,
+                    connect_args={"check_same_thread": False}
+                )   ##sqlite ma db banako // not to use production db
+
+
+                TestingSessionLocal = sessionmaker(
+                    autocommit=False,
+                    autoflush=False,
+                    bind=engine
+                )
+
+                Base.metadata.create_all(bind=engine)
+
+
+                @pytest.fixture
+                    #this forces fixture to be called first
+                    ##and then only the remaining test cases
+                def client():
+                    def override_get_db():
+                        try:
+                            db = TestingSessionLocal()
+                            ## created db object
+                            yield db
+                            ## return db
+                        finally:
+                            db.close()
+
+                    app.dependency_overrides[get_db] = override_get_db
+                    client = TestClient(app)
+                    yield client
+                        #we are using yield instead of return
+
+
+                @pytest.fixture
+                    #this forces fixture to be called first
+                    ##and then only the remaining test cases
+                def token_header(client: TestClient):
+                    #as our client is Testclient
+                    #we need to use db
+                    test_email = setting.TEST_EMAIL
+                    test_pass = setting.TEST_PASS
+                    #test tala halda error aayo so mail and pass yeta halya
+                    #ani tala call garaeko teslai
+                    db = TestingSessionLocal()
+                    user = db.query(User).filter(User.email==test_email).first()
+                    if user is None:
+                        user = User(email=test_email, password=Hasher.get_hash_password(test_pass))
+                        db.add(user)
+                        db.commit()
+                        db.refresh(user)
+
+                    data = {"username":test_email, "password":test_pass}
+                        #username and password any user we have in our test.db
+                        #since they are as dictionary we use above syntax
+                    response = client.post("/login/token", data=data)
+                    access_token = response.json()["access_token"]
+                        #as the response is json, thei anusar data fetch garaeko
+                        #also we have defines access_token in login.py
+                            #check that for reference if needed
+                    return {"Authorization": f"Bearer {access_token}"}
+
+
+        now,
+            in terminal
+                rm test.db
+                pytest-v
+                    o/p:
+                        ====================================================================== test session starts =======================================================================
+                        platform win32 -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0 -- D:\work\pythonProject\fastapiTest\venv\Scripts\python.exe
+                        cachedir: .pytest_cache
+                        rootdir: D:\work\pythonProject\fastapiTest
+                        plugins: anyio-3.6.2, cov-4.0.0
+                        collected 3 items
+
+                        tests/test_itemroute.py::test_create_item PASSED                                                                                                            [ 33%]
+                        tests/test_itemroute.py::test_retrieve_item_by_id PASSED                                                                                                    [ 66%]
+                        tests/test_userroute.py::test_create_user FAILED                                                                                                            [100%]
+
+                        ============================================================================ FAILURES ============================================================================
+
+
+                        error:
+                            ==================================================================== short test summary info =====================================================================
+                            FAILED tests/test_userroute.py::test_create_user - sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: users.email
+                            ================================================================== 1 failed, 2 passed in 1.97s ===================================================================
+
+        yo user ma error aayo aba
+        so
+
+    in
+    test_userroute.py,
+        edited 2 lines:
+            code:
+                data = {"email": "test2@test.com", "password": "password"}
+                    # providing dummy data
+                assert response.json()["email"] == "test2@test.com"
+                    #thei mathi wala email
+
+
+    finalllllyyyyyyyyyyyy,
+        in terminal:
+            rm test.db
+            pytest -v
+
+                o/p:
+                    ====================================================================== test session starts =======================================================================
+                    platform win32 -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0 -- D:\work\pythonProject\fastapiTest\venv\Scripts\python.exe
+                    cachedir: .pytest_cache
+                    rootdir: D:\work\pythonProject\fastapiTest
+                    plugins: anyio-3.6.2, cov-4.0.0
+                    collected 3 items
+
+                    tests/test_itemroute.py::test_create_item PASSED                                                                                                            [ 33%]
+                    tests/test_itemroute.py::test_retrieve_item_by_id PASSED                                                                                                    [ 66%]
+                    tests/test_userroute.py::test_create_user PASSED                                                                                                            [100%]
+
+                    ======================================================================= 3 passed in 1.04s ========================================================================
+
+
+|---------------------------------------|
+|***************************************|
+|***************** NOTE*****************|
+|******* rm test.db is compulsory*******|
+|***************************************|
+|---------------------------------------|
