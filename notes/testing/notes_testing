@@ -880,6 +880,43 @@ step 6:
 
                     ======================================================================= 3 passed in 1.04s ========================================================================
 
+    again,
+        in terminal:
+            rm test.db
+            pytest --cov="."
+
+                o/p:
+                    ====================================================================== test session starts =======================================================================
+                    platform win32 -- Python 3.10.8, pytest-7.1.3, pluggy-1.0.0
+                    rootdir: D:\work\pythonProject\fastapiTest
+                    plugins: anyio-3.6.2, cov-4.0.0
+                    collected 3 items
+
+                    tests\test_itemroute.py ..                                                                                                                                  [ 66%]
+                    tests\test_userroute.py .                                                                                                                                   [100%]
+
+                    ---------- coverage: platform win32, python 3.10.8-final-0 -----------
+                    Name                      Stmts   Miss  Cover
+                    ---------------------------------------------
+                    config.py                    22      0   100%
+                    database.py                  14      4    71%
+                    hashing.py                    9      0   100%
+                    main.py                      12      0   100%
+                    models.py                    18      0   100%
+                    routers\__init__.py           0      0   100%
+                    routers\items.py             74     31    58%
+                    routers\login.py             20      2    90%
+                    routers\users.py             17      1    94%
+                    schemas.py                   19      0   100%
+                    tests\conftest.py            41      0   100%
+                    tests\test_itemroute.py      11      0   100%
+                    tests\test_userroute.py       8      0   100%
+                    ---------------------------------------------
+                    TOTAL                       265     38    86%
+
+
+                    ======================================================================= 3 passed in 1.17s ========================================================================
+
 
 |---------------------------------------|
 |***************************************|
@@ -887,3 +924,8 @@ step 6:
 |******* rm test.db is compulsory*******|
 |***************************************|
 |---------------------------------------|
+
+
+
+(continue to note_steps: 20)
+

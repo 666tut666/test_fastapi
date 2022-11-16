@@ -489,6 +489,8 @@ step 12:
 ********* Check adding new column in existing table*********
 ** for now went to pgadmin and added a column date_created**
 ************************************************************
+            ###EDIT migration may help
+            ###go to step 21
 
     in items.py added new lines of code
         New code:
@@ -1385,6 +1387,1309 @@ step 18:
 
 
 
- Step 19:
+Step 19:
           tests carried out, check /notes/testing/notes_testing
             (step 6)
+
+
+
+
+Step 20:
+    (Now we do FrontEnd)
+    (src=
+        https://fastapi.tiangolo.com/advanced/templates/
+    )
+    pip install jinja2
+        note:
+            we have DRY problem in HTML coding
+            too much repetitions
+            with jinja we can:
+                we create a separate html file,
+                containing all  repeat codes,
+                and,
+                    we will inherit the html code
+                    for now we do that in base.html
+        /note
+
+
+
+        made new directories
+            /templates
+            /webapps
+            /webapps/routers
+
+
+        in /templates
+            created item_hp.html
+                #item home page
+
+            created base.html
+                html file for inheriting
+
+
+        in /webapps/routers
+            created items.py
+
+                items.py,
+                    code:
+                        from fastapi import APIRouter, Request
+                        from fastapi.templating import Jinja2Templates
+
+
+                        router = APIRouter()
+                        templates = Jinja2Templates(directory="templates")
+                            #defined path where html files are
+                                ##templates.....
+
+
+                        @router.get("/")
+                        def item_home(request: Request):
+                            return templates.TemplateResponse(
+                                "item_hp.html",
+                                {"request": request}
+                            )
+                                #using pydantic approach
+                                ##taking i/p as request// request type
+                                    #item_hp.html is item`s home page
+
+
+
+    in base.html,
+        added code:
+            <!DOCTYPE html>
+            <head>
+                <!-- CSS only -->
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+                {% block title %}
+                {% endblock %}
+            </head>
+
+            <body>
+
+                {% block content %}
+                {% endblock %}
+            <script>
+                !-- JavaScript Bundle with Popper -->
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+                    {% block script %}
+                    {% endblock %}
+            </script>
+            </body>
+
+            </html>
+
+                note:
+                    {% ..... %}
+                    it is jinja template
+                    loops and all lai ni yei ho syntax
+
+                    <js ra css>
+                        ko src:
+                            https://getbootstrap.com/
+
+                    omit integrity and crossorigin from below for now,
+                        original one:
+                            <!-- CSS only -->
+                            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+
+                            <!-- JavaScript Bundle with Popper -->
+                            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+
+
+    now,
+        in item_hp.html:
+            add code:
+                {% extends "base.html" %}
+
+                {% block title %}
+                    <title> Item HomePage </title>
+                {% endblock %}
+
+                {% block content %}
+                    <h3> This is Item HomePage </h3>
+                {% endblock %}
+
+
+    so,
+    to get items.py's route
+    we need to call it in main,
+
+        so,
+            in main.py
+                add code:
+                    from webapps.routers import items as web_items
+                    app.include_router(web_items.router)
+
+
+                        web_items is used
+                            because:
+                                we already have item called as
+                                    from routers import users, items, login
+                            / because
+
+
+    finally
+        run uvicorn,
+            homepage url...
+                localhost:8000
+
+                    o/p:
+                        This is Item HomePage
+
+            in the link
+                right click
+                    press inspect page source
+                    or,
+                    view-source:http://localhost:8000/
+                        o/p:
+
+                            <!DOCTYPE html>
+                            <head>
+                                <!-- CSS only -->
+                                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+                                <title> Item HomePage </title>
+
+                            </head>
+
+                            <body>
+
+
+                                <h3> This is Item HomePage </h3>
+
+                            <script>
+                                <!-- JavaScript Bundle with Popper -->
+                                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+                            </script>
+                            </body>
+
+                            </html>
+
+            note:
+                item_hp.html ko code:
+                    {% extends "base.html" %}
+
+                    {% block title %}
+                        <title> Item HomePage </title>
+                    {% endblock %}
+
+                    {% block content %}
+                        <h3> This is Item HomePage </h3>
+                    {% endblock %}
+
+                tara we used inheritance and thats the fun :D
+
+            also,
+                check localhost:8000/docs,
+                last ma
+                    GET/Item Home
+                        execute it
+                            response o/p:
+                                <!DOCTYPE html>
+                                <head>
+                                    <!-- CSS only -->
+                                    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+                                    <title> Item HomePage </title>
+
+                                </head>
+
+                                <body>
+
+
+                                    <h3> This is Item HomePage </h3>
+
+                                <script>
+                                    <!-- JavaScript Bundle with Popper -->
+                                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
+                                </script>
+                                </body>
+
+                                </html>
+
+            we dont need it in swagger ui
+            gotta omit it
+
+                so,
+                in /webapps/routers/items.py,
+
+                    add in router,
+                        code:
+                            router = APIRouter(include_in_schema=False)
+                                               ^^^^^^^^^^^^^^^^^^^^^^^
+                                               yeslae tala ko routes hide garcha
+                                               yesko default is True.
+
+
+                                NOTE:
+                                    router specifc omit garnu lai chai
+                                        code:
+                                            @app.get("/items/", include_in_schema=False)
+                                                               ^^^^^^^^^^^^^^^^^^^^^^^^
+                                                               mention like this
+
+
+
+
+step 21:
+
+    (migration using SQLAlchemy Alembic)
+
+        extra src:
+            https://towardsdatascience.com/python-database-migrations-for-beginners-getting-started-with-alembic-84e4a73a2cca
+
+    when we alter the field {or add a new field}{maybe},
+    the update won`t happen, so we need to
+    Migrate the database
+
+    pip install alembic
+
+    in terminal,
+        alembic init migrations
+            it will create environment with a new folder
+                /migrations with some files in it
+                and
+                alembic.ini
+
+    in alembic.ini,
+        we will now setup our database
+            line 58:
+                comment
+                    #sqlalchemy.url = driver://user:pass@localhost/dbname
+
+        below it,
+            add code:
+                sqlalchemy.url = postgresql://postgres:apple123@localhost:5432/testing
+                    ##we gotta setup our db so that alembic can perform it's operations
+
+    /migration ma
+    check the files itself to understand more,
+
+    in /migration:
+
+        env.py,
+            yesma metadata milaunae paila;
+            it updates db either its off/online.
+
+
+        script.py.mako,
+            developer file used by mako
+            it`s python template engine
+            it`s compiled in py module
+            USED to auto generate Web pages
+
+
+    check,
+        /pics/SQLAlchemy Alembic.png
+            scripts can be made either manually or automatic.
+
+
+    now,
+    (can skip to step 22)
+    (for creating the script automatically)
+
+
+        (for manually creating the script),
+            in terminal:
+                alembic revision -m "Initial"
+                    o/p:
+                        Generating D:\work\pythonProject\fastapiTest\migrations\versions\bc69f3f595eb_initial.py ...  done
+
+            in bc69f3f595eb_initial.py
+                modify code:
+                    def upgrade() -> None:
+                        #here we give new data columns to upgrade
+                        #op.create_table("#table_name", #column_name)
+                        pass
+
+
+                    def downgrade() -> None:
+                        #here we can go to previous version
+                        pass
+
+                yeti nai hola *no idea*
+
+            #delete bc69f3f595eb_initial.py
+            #delete __pycache__
+
+
+            for,
+            full automated script generation,
+
+                in env.py,
+                    they have told us
+                        code:
+                            # add your model's MetaData object here
+                            # for 'autogenerate' support
+                            # from myapp import mymodel
+                            # target_metadata = mymodel.Base.metadata
+                            target_metadata = None
+
+                    so,
+                        add code:
+                            from models import Base
+                            target_metadata = Base.metadata
+                                    #tala mathi nai 2ta line halda hunca
+                                    #thei garya cha mathi import halina
+
+                now
+                in terminal
+                    code:
+                        alembic revision --autogenerate -m "initial"
+
+                            o/p:
+                                INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+                                INFO  [alembic.runtime.migration] Will assume transactional DDL.
+                                INFO  [alembic.ddl.postgresql] Detected sequence named 'items_id_seq' as owned by integer column 'items(id)', assuming SERIAL and omitting
+                                Generating D:\work\pythonProject\fastapiTest\migrations\versions\120a464e1504_initial.py ...  done
+
+                the above o/p,
+                    gives the following results,
+                        ~open pg admin
+                            /db
+                                /testing
+                                    /schemas
+                                        /public
+                                            /tables
+                          Yo Table >>>>>>>>>>>  /alembic_version <<<<<<<<<<
+                                                    /columns
+                                                        version_num
+
+                now,
+
+                    we delete all 3 Tables
+                         /tables
+                            alembic_version
+
+                         /tables
+                            items
+
+                         /tables
+                            users
+
+                so,
+                    /db
+                        /testing
+                            /schemas
+                                /public
+
+                                    /tables == null XD
+
+
+
+
+
+
+step 22
+    (for creating the script automatically)
+
+
+        from
+        folder /migration,
+            remove /__pycache__
+
+        empty
+            /migrations/versions
+
+
+        now
+            in terminal
+                code:
+                    alembic revision --autogenerate -m "initial"
+
+                        o/p:
+                            INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+                            INFO  [alembic.runtime.migration] Will assume transactional DDL.
+                            INFO  [alembic.autogenerate.compare] Detected added table 'users'
+                            INFO  [alembic.autogenerate.compare] Detected added index 'ix_users_email' on
+                            '['email']'
+                            INFO  [alembic.autogenerate.compare] Detected added index 'ix_users_id' on '['
+                            id']'
+                            INFO  [alembic.autogenerate.compare] Detected added table 'items'
+                            INFO  [alembic.autogenerate.compare] Detected added index 'ix_items_id' on '['id']'
+                            Generating D:\work\pythonProject\fastapiTest\migrations\versions\16c44f588dd6_initial.py ...  done
+
+        now,
+            open
+                fastapiTest\migrations\versions\16c44f588dd6_initial.py
+
+                    o/p:
+                        """initial
+
+                        Revision ID: 16c44f588dd6
+                        Revises:
+                        Create Date: 2022-11-14 12:02:06.161169
+
+                        """
+                        from alembic import op
+                        import sqlalchemy as sa
+
+
+                        # revision identifiers, used by Alembic.
+                        revision = '16c44f588dd6'
+                        down_revision = None
+                        branch_labels = None
+                        depends_on = None
+
+
+                        def upgrade() -> None:
+                            # ### commands auto generated by Alembic - please adjust! ###
+                            op.create_table('users',
+                            sa.Column('id', sa.Integer(), nullable=False),
+                            sa.Column('email', sa.String(), nullable=False),
+                            sa.Column('password', sa.String(), nullable=False),
+                            sa.Column('is_active', sa.Boolean(), nullable=True),
+                            sa.PrimaryKeyConstraint('id')
+                            )
+                            op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
+                            op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
+                            op.create_table('items',
+                            sa.Column('id', sa.Integer(), nullable=False),
+                            sa.Column('title', sa.String(), nullable=False),
+                            sa.Column('description', sa.String(), nullable=True),
+                            sa.Column('date_posted', sa.Date(), nullable=True),
+                            sa.Column('owner_id', sa.Integer(), nullable=True),
+                            sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ),
+                            sa.PrimaryKeyConstraint('id'),
+                            sa.UniqueConstraint('title')
+                            )
+                            op.create_index(op.f('ix_items_id'), 'items', ['id'], unique=False)
+                            # ### end Alembic commands ###
+
+
+                        def downgrade() -> None:
+                            # ### commands auto generated by Alembic - please adjust! ###
+                            op.drop_index(op.f('ix_items_id'), table_name='items')
+                            op.drop_table('items')
+                            op.drop_index(op.f('ix_users_id'), table_name='users')
+                            op.drop_index(op.f('ix_users_email'), table_name='users')
+                            op.drop_table('users')
+                            # ### end Alembic commands ###
+
+
+
+    So,
+    The script has now been automatically generated
+
+
+
+
+step 23:
+    (HTML NavBar Template)
+    Since,
+        Navbar is default on all pages
+        we,
+            add it to
+                base.html
+
+
+    (Bootstrap)
+    we are using Bootstrap now,
+        src:
+            https://getbootstrap.com/docs/5.1/components/navbar/
+
+        can use any format
+            we are using first for now
+            copy the code
+
+    now,
+    in /templates
+    create
+        navbar.html
+            and pase the code
+                code:
+                <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                  <div class="container-fluid">
+                    <a class="navbar-brand" href="#">Navbar</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                      <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                          <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link" href="#">Link</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Dropdown
+                          </a>
+                          <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                          </ul>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link disabled">Disabled</a>
+                        </li>
+                      </ul>
+                      <form class="d-flex">
+                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                        <button class="btn btn-outline-success" type="submit">Search</button>
+                      </form>
+                    </div>
+                  </div>
+                </nav>
+
+    now,
+    go to base.html,
+        <body>
+            add code:
+                {% include 'navbar.html' %}
+        {% block content %}
+
+            #this uses jinja to fetch navbar.html by default
+
+    uvicorn main:app --reload
+        go to localhost:8000/
+            o/p:
+                Navbar Home Link Dropdown Disabled             [txt box]Search
+                This is Item HomePage
+            sth like this
+
+
+    to edit
+    go to
+        in navbar.html,
+            edit code:
+                <a class="navbar-brand" href="#">Navbar</a>
+                <a class="nav-link" href="/docs">Docs</a>
+
+            copy pase Docs and make redoc aswell
+                <li class="nav-item">
+                  <a class="nav-link" href="/redoc">ReDoc</a>
+                </li>
+
+    refresh,
+        localhost:8000/
+        check:
+            new edits, click Docs and ReDoc
+            #this is how we do it
+
+
+step 24:
+    (Static Files with FastAPI)
+    (loading images now)
+
+    pip install aiofiles
+    pip freeze > requirements.txt
+
+    now
+    in navbar.html,
+        changed code:
+            old code:
+                <a class="navbar-brand" href="#">FastAPI</a>
+            new code:
+            (will be edited below)
+                <a class="navbar-brand" href="#">
+                  <img src="" alt="Logo" width="24" height="24">
+                </a>
+
+    so,
+    now to let app know where will the static file be located,
+        #img src
+
+    first,
+        create static folder in root directory
+        /static/images
+            # /images for storing all pics
+
+    then,
+    in main.py,
+        import StaticFiles from fastapi.staticfiles
+            under app= fast api
+                add code:
+                    app.mount("/static", StaticFiles(directory="static"), name="static")
+                            #mount the path for img
+
+
+    in /static/images,
+        keep any pic as:
+            logo.png
+
+    go back to,
+    navbar.html
+        edit previous
+            code as:
+                <img src="{{ url_for('static', path='images/logo.png') }}"
+                       alt="logo"
+                       width="24"
+                       height="24"
+                >
+
+    uvicorn app:main -reload
+
+    check:
+        localhost:8000/
+            top left ma pic aaucha
+        http://localhost:8000/static/images/logo.png
+        must contain the logo
+
+
+
+
+step 25:
+    (List all the Items in HTML Template)
+
+    in webapps/routers,
+        import Depends from fastapi
+        import Items from models
+        import Session from sqlalchemy.orm
+        import get_db from database
+
+        updated code:
+            @router.get("/")
+            def item_home(
+                    request: Request,
+                    db:Session=Depends(get_db)
+            ):
+                items = db.query(Items).all()
+                return templates.TemplateResponse(
+                    "item_hp.html",
+                    {"request": request, "items": items}
+                )
+                    #using pydantic approach
+                    ##taking i/p as request// request type
+                        #item_hp.html is item`s home page
+                        ##gotta declare Request in Jinja
+                    ## as we have used item_hp, gotta define it there too
+        now,
+        in item_hp
+            updated code:
+                {% block content %}
+                    <h3> This is Item HomePage </h3>
+                    {{ items }}
+                {% endblock %}
+                        NOTE: use double {{ }} to use any variable
+
+    now,
+        from swagger UI
+            create a user as
+                username: mail@email.com
+                password: password
+
+            add random items
+
+
+        now load localhost@8000/
+            o/p:
+                [<models.Items object at 0x000001E9A1000B80>, <models.Items object at 0x000001E9A1001120>, <models.Items object at 0x000001E9A10004F0>]
+                        ###but we want items...
+
+    so,
+    using bootstrap,
+        we create card
+            src:
+                https://getbootstrap.com/docs/5.1/components/card/
+                    code:
+                        <div class="card" style="width: 18rem;">
+                          <img src="..." class="card-img-top" alt="...">
+                          <div class="card-body">
+                            <h5 class="card-title">Card title</h5>
+                            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                            <a href="#" class="btn btn-primary">Go somewhere</a>
+                          </div>
+                        </div>
+
+            now,
+                copy the first code,
+
+
+    to use cards
+    in /templates
+        create card.html
+            paste copied code
+            delete img src... line
+                new code:
+                <div class="card" style="width: 18rem;">
+                  <div class="card-body">
+                    <h5 class="card-title">Card title</h5>
+                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                    <a href="#" class="btn btn-primary">Go somewhere</a>
+                  </div>
+                </div>
+
+    finally,
+    to include the card,
+
+    in item_hp.html
+        add code:
+            {% block content %}
+                <h3> This is Item HomePage </h3>
+                {{ items }}
+                {% include 'card.html' %}
+            {% endblock %}
+
+            o/p:
+                check notes/ref_img/1.png
+
+    mini problems and fixes:
+        a) everything is on left side tassaeko
+            soln:
+                using bootstrap,
+                    create container class and put the code inside it
+                        code:
+                             <div class="container">
+                                <h3> This is Item HomePage </h3>
+                                {{ items }}
+                                {% include 'card.html' %}
+                            </div>
+
+                            O/P:
+                                check notes/ref_img/2.png
+
+        b)  delete [<models.Items object at 0x000001E9A1000B80>, <models.Items object at 0x000001E9A1001120>, <models.Items object at 0x000001E9A10004F0>]
+            and show as item card
+                soln:
+                    using jinja and for loop,
+                        in item_hp.html
+                            edit above code
+                            new code:
+                                <div class="container">
+                                    <h3> This is Item HomePage </h3>
+                                    {% for item in items %}
+                                        {% include 'card.html' %}
+                                    {% endfor %}
+                                </div>
+
+                                    o/p:
+                                        check notes/ref_img/3.png
+
+        c) Card title // Some quick example text to build on the card title and make up the bulk of the card's content.
+            we don`t want that we need our data from db as it is
+                soln:
+                    we have item as title & description,
+                    so
+                    in card.html,
+                        edit the existing code as
+                            new code:
+                                <div class="card" style="width: 18rem;">
+                                  <div class="card-body">
+                                    <h5 class="card-title">{{ item.title }}</h5>
+                                    <p class="card-text">{{ item.description }}</p>
+                                    <a href="#" class="btn btn-primary">Read more</a>
+                                  </div>
+                                </div>
+                                            NOTE: agi jastai variable bolako
+                                                #read more is empty for now
+                                    o/p:
+                                        check notes/ref_img/4.png
+
+
+                    this gives desired o/p
+                    but this is not a proper method
+                    so,
+                    in item_hp.html
+                        add code:
+                            <h3> This is Item HomePage </h3>
+                            {% for item in items %}
+                                {% with citem = item %}
+                                    {% include 'card.html' %}
+                                {% endwith %}
+                            {% endfor %}
+                                        note: We defined variable citem as item
+                    due to note:
+                    in card.html,
+                        rename item as citem
+
+                            o/p:
+                                same as notes/ref_img/4.png
+
+        d) notes/ref_img/4.png shows card is not in grid
+            so we used procided code from
+                src:
+                    https://getbootstrap.com/docs/5.1/layout/grid/
+
+                    sytax:
+                        <div class="container">
+                          <div class="row">
+                            <div class="col">
+                              Column
+                            </div>
+                            <div class="col">
+                              Column
+                            </div>
+                            <div class="col">
+                              Column
+                            </div>
+                          </div>
+                        </div>
+
+            lets use the syntax,
+                in
+                item_hp.html,
+                    we need to use row class before loop // after </h3>
+
+                        new code:
+                            <div class="row">
+                                {% for item in items %}
+                                    {% with citem = item %}
+                                        {% include 'card.html' %}
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+
+                                o/p:
+                                    check notes/ref_img/5.png
+
+                                    problem: no space btn cards
+
+        e) to provide space between cards
+            we use column
+                in item_hp.html
+                    updated code:
+                            <h3> This is Item HomePage </h3>
+                            <div class="row">
+                                {% for item in items %}
+                                    <div class="col">
+                                        {% with citem = item %}
+                                            {% include 'card.html' %}
+                                        {% endwith %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+
+
+                            o/p:
+                                check notes/ref_img/6.png
+
+        f) possible problem: long string in description causes card to elongate
+            from swagger UI
+            add a new item
+            give a really long description
+
+            refresh localhost:8000/
+                op:
+                    check notes/ref_img/7.png
+
+
+                soln:
+                    we use slicing technique
+                    put [desired_number]
+
+                    eg:
+                        in card.html,
+                            edit code:
+                                <p class="card-text">{{ citem.description[:30} }}</p>
+                                        NOTE: it will display 30 char only 8.png
+                                            to display more we can click in read more
+                                                #haven`t done it for now
+
+                                            o/p:
+                                                check notes/ref_img/8.png
+
+
+        g) Read More button doesn`t redirect to any link
+            so,
+            we first create a new route
+                /webapps/routers
+                go to item.py,
+
+                import Items from models
+                    add code:
+                        @router.get("/detail/{id}")
+                        def item_detail(
+                                request: Request,
+                                id: int,
+                                db: Session=Depends(get_db)
+                        ):
+                            item = db.query(Items).filter(Items.id==id).first()
+                            return templates.TemplateResponse(
+                                "item_detail.html",
+                                {"request": request, "item": item}
+                            )
+
+            now,
+            in /templates create
+            item_detail.html
+
+
+            using bootstrap,
+            we will use table
+                    src:
+                        https://getbootstrap.com/docs/5.1/content/tables/
+
+                    copy first table
+
+                    add the code:
+                        {% extends 'base.html' %}
+
+                        {% block title %}
+                            <title>Job Detail</title>
+                        {% endblock %}
+
+                        {% block content %}
+                            <div class="container">
+                                <h1>Job Detail</h1>
+                                <table class="table">
+                                  <tbody>
+                                     <tr>
+                                         <th scope="row">Title</th>
+                                         <td>{{item.title}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Description</th>
+                                        <td>{{item.description}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Date Posted</th>
+                                        <td colspan="2">{{item.date_posted}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Owner</th>
+                                        <td colspan="2">{{ email }}</td>
+                                    </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                        {% endblock %}
+
+            now,
+            /webapps/routers
+                go to item.py,
+
+                import User from models
+                    add and edit
+                        code as:
+                                item = db.query(Items).filter(Items.id==id).first()
+                                user = db.query(User).filter(User.id==item.owner_id).first()
+                                return templates.TemplateResponse(
+                                    "item_detail.html",
+                                    {
+                                        "request": request,
+                                        "item": item,
+                                        "user": user
+                                    }
+                                )
+            now,
+            in item_detail.html
+                edit code:
+                        <td colspan="2">{{ user.email }}</td>
+
+
+            finally,
+            to make the button redirect,
+                go to card.html,
+                    edit code:
+                            <a href="/detail/{{ citem.id }}" class="btn btn-primary">Read more</a>
+
+
+            uvicorn main:app --reload
+                load localhost:8000/
+                    click any string. i did long string item
+                        o/p:
+                            check notes/ref_img/9.png
+
+
+
+
+step 26:
+    (user registration)
+        we don`t have a HTML route for registration,
+        in,
+        /webapps/routers
+            create
+                users.py
+                        code:
+                            from fastapi import APIRouter, Request
+                            from fastapi.templating import Jinja2Templates
+
+                            router = APIRouter()
+                            templates = Jinja2Templates(directory="templates")
+
+
+                            @router.get("/register")
+                            def registration(request: Request):
+                                return templates.TemplateResponse(
+                                    "user_register.html",
+                                    {"request": request}
+                                )
+
+        now,
+        in /templates,
+            create,
+                user_register.html,
+                we have defined it in above code so....
+                we also use bootstrap here for registration form
+                    src:
+                        https://getbootstrap.com/docs/5.1/forms/overview/
+                    copy first one
+
+                        code:
+                                {% extends 'base.html' %}
+                                {% block title %}
+                                    <title>
+                                      SignUp
+                                    </title>
+                                {% endblock %}
+
+                                {% block content %}
+                                    <div class="container">
+                                      <h1>
+                                         Registration
+                                      </h1>
+
+                                       <form>
+
+                                          <div class="mb-3">
+                                            <label for="email" class="form-label">Email address</label>
+                                            <input type="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="Enter your Email">
+                                          </div>
+
+                                          <div class="mb-3">
+                                            <label for="password" class="form-label">Password</label>
+                                            <input type="password" class="form-control" id="password" placeholder="Enter your Password">
+                                          </div>
+
+                                          <button type="submit" class="btn btn-primary">Register</button>
+                                       </form>
+                                    </div>
+                                {% endblock %}
+
+        now,
+        we need to define this route in main
+
+            in main.py,
+                add code:
+                        from webapps.routers import items as web_items, users as web_users
+                                                                      ##^^^^^^^^^^^^^^^^^^^ new import
+                        #and at last
+                        app.include_router(web_users.router)
+
+
+        we now have created the login form
+
+            uvicorn main:app --reload
+                localhost:8000/register
+                    the email validation is done by default
+                        o/p:
+                             check notes/ref_img/10.png
+
+        for now no process is done in backend to register,
+        lets get to that now
+
+        so,
+        first
+        in /templates/navbar.html,
+            add code:
+                    <li class="nav-item dropdown">
+                      <a class="nav-link dropdown-toggle" href="/register" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Register
+                      </a>
+                      <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="/register">Register</a></li>
+                        <li><a class="dropdown-item" href="/login">Login</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">Something else here</a></li>
+                      </ul>
+                    </li>
+
+                    ##dropdown still doesn`t work,
+                        skip for now
+
+        now,
+        go to /webapps/routers
+            in,
+            users.py
+                add code:
+                        from models import User
+                        from fastapi import Depends
+                        from hashing import Hasher
+                        from sqlalchemy.orm import Session
+                        from database import get_db
+                        from  sqlalchemy.exc import IntegrityError
+                        @router.post("/register")
+                        ##even if we have same link and function
+                        ##we are using post and get
+                        ##so it`s kk
+                        async def registration(
+                                request: Request,
+                                db:Session=Depends(get_db),
+                        ):
+                            form = await request.form()
+                            email = form.get("email")
+                            password = form.get("password")
+                            errors = []
+                                #error is list for now
+                            if len(password) < 6:
+                                errors.append("password must be more than 6 characters")
+                                return templates.TemplateResponse(
+                                    "user_register.html",
+                                    {"request": request, "errors": errors}
+                                )
+                                    #error aayae user_register.html reload huncha
+                            user = User(email=email, password=Hasher.get_hash_password(password))
+                            try:
+                                db.add(user)
+                                db.commit()
+                                db.refresh(user)
+                            except IntegrityError:
+                                errors.append("Email already exists")
+                                return templates.TemplateResponse(
+                                    "user_register.html",
+                                    {"request": request, "errors": errors}
+                                )
+
+
+
+            because we are using post method,
+            gotta define it in /templates
+                user_registration.html
+                    edited code:
+                            <form method="post">
+                            <input type="email" class="form-control" name="email" aria-describedby="emailHelp" placeholder="Enter your Email">
+                            <input type="password" class="form-control" name="password" placeholder="Enter your Password">
+
+
+                uvicorn main:app --reload
+                    go to localhost:8000/register
+                        o/p:
+                            new user gets added, returns webpage with null on it
+                            error message isn`t flashed
+
+        for error display,
+        in /templates/user_register.html,
+                    code:
+                            <h1>
+                                 Registration
+                            </h1>
+                            {% for error in errors %}
+                                   {{error}}
+                            {% endfor %}
+                            <form method="post">
+
+                                o/p:
+                                    error display done
+
+                                        check notes/ref_img/11.png
+
+            to make error look appealing,
+                using bootstrap,
+                    src:
+                        https://getbootstrap.com/docs/5.1/components/alerts/
+
+                    copy any
+
+                in user_registration.html,
+                    add code:
+                            {% for error in errors %}
+                                <div class="alert alert-primary" role="alert">
+                                    {{error}}
+                                </div>
+                            {% endfor %}
+
+                            o/p:
+                                check notes/ref_img/12.png
+                                looks much better
+        in
+        /webapp/routers
+            items.py,
+                Edit code as:
+                        def item_home(
+                                request: Request,
+                                db:Session=Depends(get_db),
+                                msg:str=None
+                        ):
+                            items = db.query(Items).all()
+                            return templates.TemplateResponse("item_hp.html", {"request": request, "items": items, "msg": msg})
+
+
+        in
+        /templates
+            item_hp.html
+                Edit code as:
+                        {% if msg %}
+                            <div class="alert alert-success" role="alert">
+                                {{msg}}
+                            </div>
+                        {% endif %}
+
+        load bhayo
+        tara,
+        success msg aayaena skip
+
+
+
+
+step 27:
+    (User login)
+
+        in,
+        webapps/routers
+            create,
+                auth.py
+                    code:
+                        from fastapi import APIRouter, Request
+                        from fastapi.templating import Jinja2Templates
+
+                        router = APIRouter(include_in_schema=False)
+                                #include_in_schema=False
+                                #to remove routers as default
+                                #in    swagger UI
+                        templates = Jinja2Templates(directory="templates")
+
+
+                        @router.get("/login")
+                        def login(request: Request):
+                            return templates.TemplateResponse(
+                                "login.html",
+                                {"request":request}
+                            )
+
+        now,
+        in,
+        /templates
+            create,
+                login.html
+                here we also use bootstrap Forms
+                        src:
+                            https://getbootstrap.com/docs/5.1/forms/overview/
+                    code:
+                        {% extends 'base.html' %}
+
+                        {% block title %}
+                            <title>Login Page</title>
+                        {% endblock %}
+
+                        {% block content %}
+                            <div class="container">
+                              <h1>Login here!</h1>
+                              <form>
+                                  <div class="mb-3">
+                                      <label for="email" class="form-label">Email address</label>
+                                      <input type="email" required class="form-control" name="email" aria-describedby="emailHelp">
+                                  </div>
+                                  <div class="mb-3">
+                                      <label for="password" class="form-label">Password</label>
+                                      <input type="password" required class="form-control" name="email">
+                                  </div>
+                                  <button type="submit" class="btn btn-primary">Login</button>
+                              </form>
+                            </div>
+                        {% endblock %}
+
+    now,
+        in main.py
+            import auth as  web_auth from webapps.router
+            and add router
+                code:
+                    app.include_router(web_auth.router)
+
+        uvicorn main:app --reload
+            click register/ dropdown/ login
+                    o/p:
+                        check notes/ref_img/13.png
+
+    problem,
+        when trying to login,
+        1)it doesn't redirect
+        2)we get this url:
+                http://localhost:8000/login?email=dummy%40mail.com&email=password#
