@@ -55,6 +55,7 @@ async def login(
                 # after password is verified, need jwt token, so
                 data = {"sub": email}
                 # jwt.io remember?
+
                 jwt_token = jwt.encode(
                     data,
                     setting.SECRET_KEY,
@@ -64,7 +65,7 @@ async def login(
                 # we are using our own login form,
                 # we are now using cookie to store password
                 msg = "Login Success"
-                return templates.TemplateResponse(
+                response = templates.TemplateResponse(
                     "login.html",
                     {"request": request, "msg": msg}
                 )
@@ -73,6 +74,7 @@ async def login(
                     value=f"Bearer {jwt_token}",
                     httponly=True
                 )
+                return response
                 # value is Bearer <token>
                 # using Http only = True - notes ma explained cha
 
