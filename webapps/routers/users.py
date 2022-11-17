@@ -48,7 +48,7 @@ async def registration(
         db.commit()
         db.refresh(user)
         return responses.RedirectResponse(
-            "/",
+            "/?msg=successfully registered",
             status_code=status.HTTP_302_FOUND
         )
     except IntegrityError:

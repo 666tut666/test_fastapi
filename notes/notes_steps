@@ -2693,3 +2693,117 @@ step 27:
         1)it doesn't redirect
         2)we get this url:
                 http://localhost:8000/login?email=dummy%40mail.com&email=password#
+
+    solution,
+    in /templates,
+        login.html,
+            edit code:
+                <form method="post">
+
+    in /webapps/routers,
+        auth.py,
+        we have get route,
+        but,
+        we need post route as the template returns post route,
+        also,
+            we are using cookie to store pw:
+
+                to view cookie in Brave(the browser i`m using):
+                    brave://settings/siteData?search=cookies
+
+                to be safe from JS code attackers might use to steal info,
+                    we are using using HTTPonly
+
+                cookie syntax source:
+                    https://fastapi.tiangolo.com/advanced/response-cookies/
+
+        so,
+            import Depends, Response from fastapi
+            import Session from sqlalchemy.orm
+            import get_db from database
+            import Users from models
+            import Hasher from hashing
+            import jwt from josh
+            import setting from config
+                #as config.py has ALGORITHM, SECRET_KEY defined in Settings class
+                code:
+                        @router.post("/login")
+                        async def login(
+                                request: Request,
+                                response: Response,
+                                db:Session=Depends(get_db)
+
+                        ):
+                            form = await request.form()
+                            email = form.get("email")
+                            password = form.get("password")
+                            errors = []
+                            if not email:
+                                errors.append("please enter valid email")
+                            if not password or len(password) < 5:
+                                errors.append("Password must be more than 5 characters")
+                            try:
+                                #checking if email exists on db.
+                                user = db.query(User).filter(User.email==email).first()
+                                if user is None:
+                                    errors.append("Email does not exist")
+                                    return templates.TemplateResponse(
+                                        "login.html",
+                                        {"request":request, "errors":errors}
+                                    )
+                                    #returning login page again as
+                                        #login was not successful
+                                else:
+                                    if Hasher.verify_password(password, user.password):
+                                        #password is plain password,
+                                        #user.password is hashed pw from db
+                                        #after password is verified, need jwt token, so
+                                        data = {"sub":email}
+                                            #jwt.io remember?
+                                        jwt_token = jwt.encode(
+                                            data,
+                                            setting.SECRET_KEY,
+                                            algorithm=setting.ALGORITHM
+                                        )
+                                        #we aren`t using OAth2 of swagger UI authorization
+                                        #we are using our own login form,
+                                        #we are now using cookie to store password
+                                        response.set_cookie(
+                                            key="access_token",
+                                            value=f"Bearer {jwt_token}",
+                                            httponly=True
+                                        )
+                                        #value is Bearer <token>
+                                        # using Http only = True - notes ma explained cha
+
+                                    else:
+                                        errors.append("Invalid Password")
+                                        return templates.TemplateResponse(
+                                            "login.html",
+                                            {"request": request, "errors": errors}
+                                        )
+                            except:
+                                errors.append("something`s wrong")
+                                return templates.TemplateResponse(
+                                    "login.html",
+                                    {"request": request, "errors": errors}
+                                )
+
+        now,
+        to display error,
+        in /templates
+            login.html,
+                add code:
+                        <h1>Login here!</h1>
+                        {% if msg %}
+                            <div class="alert alert-success" role="alert">
+                                {{msg}}
+                            </div>
+                        {% endif %}
+                                ##yo success ko lai
+                        {% for error in errors %}
+                            <div class="alert alert-danger" role="alert">
+                                {{ error }}
+                            </div>
+                        {% endfor %}
+                                ##yo error ko lai
