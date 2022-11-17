@@ -2904,3 +2904,10 @@ step 27:
                                 "login.html",
                                 {"request": request, "errors": errors}
                             )
+
+
+    finally,
+        we are able to login and cookie is done
+            cookie,
+                o/p:
+                    check notes/ref_img/14.png
