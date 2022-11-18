@@ -3022,3 +3022,106 @@ step 28:
 step 29:
     (adding functionality to create an item)
     (Reading token from HTTP Only cookies)
+
+    in /webapps/routers,
+        items.py,
+            add code:
+                    #using post method for submit button
+                    #gotta read data so async
+                    @router.post("/create-an-item")
+                    async def create_an_item(request: Request):
+                        form = await request.form()
+                        title = form.get("title")
+                        description = form.get("description")
+                        print(title)
+                        print(description)
+                            #using print for now ONLY TO CHECK if data is being passed
+
+            run uvicorn,
+            got to :
+                http://localhost:8000/create-an-item
+
+                give any dummy detail
+                    o/p:
+                        redirected to null
+                            in terminal:
+                                a
+                                555
+                                INFO:     127.0.0.1:55095 - "POST /create-an-item HTTP/1.1" 200 OK
+                                    #we gave
+                                        a as title
+                                        555 as description
+
+                job done,
+                    delete both print statements now
+
+            now,
+            remaining code
+                added code:
+                        description = form.get("description")
+                        errors = []
+                            #we need to define error dictionary
+                            #it`ll store errors
+                        if not title or len(title) < 2:
+                            errors.append("Title should be greater than two character")
+                        if not description or len(description) <10:
+                            errors.append("Description should be be more than ten characters")
+                        #if there are errors len will not be 0
+                        #in case of error we gotta display error
+                        #and also reload page showing what error, SO
+                        if len(errors) > 0:
+                            return templates.TemplateResponse(
+                                "create_item.html",
+                                {
+                                    "request": request,
+                                    "errors": errors
+                                }
+                            )
+                        #{....} passing context dict, request and showing error
+
+                            Note:
+                                to display error we need to define it in html page too
+
+    in /templates
+        create_item.html,
+
+        since error is a list,
+        need to use for loop,
+
+        we are using bootstrap to display alert
+            src:
+                https://getbootstrap.com/docs/5.1/components/alerts/
+
+        choose code as the color you prefer,
+        we are using red hence danger
+            add code:
+                    {% for error in errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {{ error }}
+                            <!-- displays the error we provided in items.py -->
+                        </div>
+                    {% endfor %}
+
+        now,
+        uvicorn main:app --reload
+            try and check:
+                all error:
+                    title < 2 && description < 10
+                        o/p:
+                            Title should be greater than two character
+                            Description should be be more than ten characters
+
+                    title > 2 && description < 10
+                        o/p:
+                            Description should be be more than ten characters
+
+                    title <2 && description > 10
+                        o/p:
+                            Title should be greater than two character
+
+                correct now:
+                    title > 2 , description > 10
+                        o/p:
+                            redirect to null
+                                ##we haven`t defined form validation response page
+                                # so all is ok

@@ -50,5 +50,30 @@ def create_an_item(request: Request):
         {"request": request}
     )
 
+
 #using post method for submit button
-@router
+#gotta read data so async
+@router.post("/create-an-item")
+async def create_an_item(request: Request):
+    form = await request.form()
+    title = form.get("title")
+    description = form.get("description")
+    errors = []
+        #we need to define error dictionary
+        #it`ll store errors
+    if not title or len(title) < 2:
+        errors.append("Title should be greater than two character")
+    if not description or len(description) <10:
+        errors.append("Description should be be more than ten characters")
+    #if there are errors len will not be 0
+    #in case of error we gotta display error
+    #and also reload page showing what error, SO
+    if len(errors) > 0:
+        return templates.TemplateResponse(
+            "create_item.html",
+            {
+                "request": request,
+                "errors": errors
+            }
+        )
+    #{....} passing context dict, request and showing error
