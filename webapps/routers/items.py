@@ -29,7 +29,7 @@ def item_home(
 def item_detail(
         request: Request,
         id: int,
-        db: Session=Depends(get_db)
+        db: Session = Depends(get_db)
 ):
     item = db.query(Items).filter(Items.id==id).first()
     user = db.query(User).filter(User.id==item.owner_id).first()
@@ -41,3 +41,14 @@ def item_detail(
             "user": user
         }
     )
+
+
+@router.get("/create-an-item")
+def create_an_item(request: Request):
+    return templates.TemplateResponse(
+        "create_item.html",
+        {"request": request}
+    )
+
+#using post method for submit button
+@router

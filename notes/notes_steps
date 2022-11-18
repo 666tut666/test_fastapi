@@ -2911,3 +2911,114 @@ step 27:
             cookie,
                 o/p:
                     check notes/ref_img/14.png
+
+
+
+step 28:
+    (create item html template)
+
+    in /webapps/routers
+        items.py,
+            add code:
+                    @router.get("/create-an-item")
+                    def create_an_item(request: Request):
+                        return templates.TemplateResponse(
+                            "create_item.html",
+                            {"request": request}
+                        )
+
+    now,
+    in /templates
+        create create_item.html,
+            we are using bootstrap forms,
+                src:
+                    https://getbootstrap.com/docs/5.1/forms/overview/
+            used first one
+                also,
+                edited as required
+
+            *NOTE* we need following field as defined in models.py
+                we don`t need to add:
+                    id, date_posted, owner_id
+                        ~ it`s created automatically
+                        skip it
+                we need to add:
+                    title and description
+
+        now,
+            add code:
+                    {% extends 'base.html' %}
+
+                    {% block title %}
+                        <title>
+                            Create Item
+                        </title>
+                    {% endblock %}
+                    {% block content %}
+                        <div class="container">
+                            <h1>Create an Item</h1>
+                            <form method="post">
+                              <div class="mb-3">
+                                <label for="title" class="form-label">Item Title</label>
+                                <input type="text" class="form-control" name="title" required placeholder="Enter Item Title">
+                                    <!-- required is used -->
+                              </div>
+
+                              <div class="mb-3">
+                                <label for="description" class="form-label">Item Description</label>
+                                <textarea class="form-control" required name="description" placeholder="Enter Item Description"></textarea>
+                                    <!-- we are using textarea as description needs more place -->
+                                    <!-- required is used -->
+                              </div>
+                              <div class="form-text">Enter item's description,in details</div>
+                              <button type="submit" class="btn btn-primary">Submit</button>
+                            </form>
+                        </div>
+                    {% endblock %}
+
+                            o/p:
+                                check notes/ref_img/15.png
+                                    highlighted area show drag down feature for description
+                                    we can pull and resize
+                                    * - we will remove it
+
+    in /templates
+        navbar.html,
+            we will remove * - something else
+            and disabled will be edited to create item link
+                deleted:
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#">Something else here</a></li>
+
+        edit code:
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="/register" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Register
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/register">Register</a></li>
+                    <li><a class="dropdown-item" href="/login">Login</a></li>
+                  </ul>
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Items
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/create-an-item">Create an Item</a></li>
+                    <li><a class="dropdown-item" href="#">Delete Item</a></li>
+                  </ul>
+                </li>
+
+
+                        o/p:
+                            check notes/ref_img/16.png
+                            under Items dropdown
+                                we have redirect-able Create an Item
+                                and un-routed Delete item
+
+
+
+step 29:
+    (adding functionality to create an item)
+    (Reading token from HTTP Only cookies)
