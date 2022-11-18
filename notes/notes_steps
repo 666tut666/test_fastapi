@@ -67,6 +67,7 @@ step 1:
         (check requirements.txt for all dependencies to install if you get error)
         (have added here a few, but some may be missing)
     initial:
+        from fastapi import Fastapi
         app = FastAPI(
             title="MyAPI",
             description=description,
