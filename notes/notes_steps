@@ -153,7 +153,7 @@ step 5:
             schema=>public=>Table ma user banyo
                 as def in models`s User class
                     Column 2ta id ra email bancha
-        ##to connect sqlite database instead of POSTGRESQL,, omit :
+        *to connect sqlite database instead of POSTGRESQL,, omit :
             SQLALCHEMY_DATABASE_URL = setting.DATABASE_URL
             &
             engine = create_engine(SQLALCHEMY_DATABASE_URL)
