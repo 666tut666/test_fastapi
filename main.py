@@ -36,7 +36,7 @@ app = FastAPI(
 )
 
 
-app.mount("/static", StaticFiles(dirxectory="static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
     #mount the path for img
 
 
